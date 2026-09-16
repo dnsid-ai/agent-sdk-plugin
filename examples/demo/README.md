@@ -1,10 +1,11 @@
 # Two agents, one signed request
 
 Alice is an Agent SDK program with the DNSid plugin loaded. Bob is the peer she
-calls. The page shows them side by side: Alice's identity and what the model
-decides, the request as it crosses the wire with its signature headers, and Bob
-verifying who sent it. Every event on the page is real: the SDK's own message
-stream on Alice's side, and Bob's server on his. Nothing is simulated.
+calls. You talk to Alice in a chat; each step she takes renders as a card in the
+conversation: her verdict on a peer, the signed request as Bob receives it,
+Bob's verdict on her, and his answer. Then she replies in a sentence. Every card
+is real: Alice's side is the SDK's own message stream, Bob's side is his server.
+Nothing is simulated.
 
 ## Run it
 
@@ -37,28 +38,32 @@ API on 4002), and the page at <http://localhost:5173>. The servers reload on
 edit. To run them separately: `npm run alice`, `npm run bob`, `npm run web`, the
 first two under `dnsid testnet run <agent>`.
 
-Alice brings herself online at session start; the first prompt takes a few
-seconds longer while the plugin submits her ISSUANCE.
+The chat is one Claude session: each prompt resumes the last, so Alice remembers
+earlier turns. She brings herself online when the session starts; the first
+prompt takes a few seconds longer while the plugin submits her ISSUANCE.
+
+To start over, `dnsid testnet reset --hard`, then the setup commands above
+again.
 
 ## What to click
 
-- **Who is Bob?** Alice calls the plugin's `verify` tool. The timeline shows the
-  verdict, ACTIVE, and Bob's side shows nothing: he was not called.
-- **GET Bob.** The verify hook checks Bob's identity, the model calls the
-  `fetch` tool, Bob answers. The wire shows an unsigned GET.
-- **POST Bob.** Same, and the wire shows `content-digest`, `signature-input`,
-  and `signature`, with the list of what the signature covers. Bob's card turns
-  green with `sent by alice.dev.dnsid.test`.
+- **Who is Bob?** Alice calls the plugin's `verify` tool. A verdict card shows
+  the four checks passing; Bob's side stays quiet, he was not called.
+- **Say hello to Bob.** The verify hook checks Bob, the model calls `fetch`, and
+  three cards follow: the request on the wire with what the signature covers,
+  Bob verifying the caller from `keyid`, and his HTTP 200.
 - **Call Carol.** Carol is registered but never issued, so she has no `_dnsid`
-  record. The hook refuses before any request leaves; the timeline shows the
-  denial and the model's reply.
-- **Anything else.** Type a prompt. Alice has one tool, so the only way she can
-  reach a peer is signed and verified.
+  record. The verdict card fails at step one, and the request never leaves.
+- **Anything else.** Type a question. Alice has two tools, so the only way she
+  can reach a peer is signed and verified.
+
+The sidebar shows both identities, their `_dnsid` records on click, and a tally
+of the session.
 
 ## How it is wired
 
 ```
-web/          Vite + React. Proxies /alice and /bob to the two APIs.
+web/          Vite + React: the chat, the cards, the sidebar. Proxies /alice and /bob to the two APIs.
 server/alice.ts   query() with the plugin; every SDK message becomes a trace event.
 server/bob.ts     examples/minimal/bob.ts plus a trace of each request and verdict.
 server/trace.ts   the event type, server-sent events, the _dnsid lookup.
