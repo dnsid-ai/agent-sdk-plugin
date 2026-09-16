@@ -41,8 +41,11 @@ the section.
 ## Process
 
 Commit only when asked. Stage by file name, never by directory. One change per
-commit, one-line message in the form `<area>: <what changed>`, no trailers or
-co-authors. When asked "do we need X", answer honestly even if it undoes work.
+commit. Messages are Conventional Commits, one line, no trailers or co-authors:
+`<type>(<scope>): <what changed>`, with types `feat`, `fix`, `refactor`, `test`,
+`docs`, `chore` and the scope a slice or area (`verify`, `sign`, `online`,
+`demo`, `guide`, `skill`). Never push to a shared branch unless asked. When
+asked "do we need X", answer honestly even if it undoes work.
 
 ## DNSid Local
 
