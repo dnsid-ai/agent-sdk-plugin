@@ -21,7 +21,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "link-sdk": "npm install --no-save --no-package-lock ../dnsid-ts/packages/core ../dnsid-ts/packages/transport ../dnsid-ts/packages/log-c2sp-tlog ../dnsid-ts/packages/sdk ../dnsid-ts/packages/registry ../dnsid-ts/packages/http-signatures ../dnsid-ts/packages/web-bot-auth ../dnsid-ts/packages/key-aws",
-    "alice": "node examples/alice.ts"
+    "alice": "node examples/minimal/alice.ts"
   },
   "dependencies": {
     "@identity-digital/dnsid": "^0.18.0",

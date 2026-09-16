@@ -68,7 +68,7 @@ host-side to force the signed path.
 
 A peer verifies with the same verifier the hook uses:
 `import { createVerifier } from '@identity-digital/dnsid-agent-sdk-plugin/verify'`.
-`examples/bob.ts` does.
+`examples/minimal/bob.ts` does.
 
 ## 3. Bring itself online (`src/online/`)
 
@@ -120,7 +120,7 @@ src/sign/            the MCP server and the signed fetch
 src/online/          the hook, the agent JWT, the issuance file
 src/shared/          identity and key selection, used by sign and online
 tests/               mirrors src/; needs no model and no network
-examples/            alice.ts, the guide's agent; bob.ts, the peer it calls
+examples/minimal/      alice.ts, the guide's agent; bob.ts, the peer it calls
 ```
 
 ## License
