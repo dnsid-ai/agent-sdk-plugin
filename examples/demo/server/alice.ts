@@ -22,6 +22,9 @@ const pluginRoot = fileURLToPath(
 );
 const trace = new Trace('alice');
 let running: AbortController | undefined;
+// One Claude session for the whole chat: each prompt resumes the last, so
+// Alice remembers earlier turns and the bring-online hook runs once.
+let sessionId: string | undefined;
 let lastPeer: string | undefined;
 
 // The SDK reports SessionStart hooks but not PreToolUse ones, so the verify
@@ -131,11 +134,13 @@ function record(message: SDKMessage) {
     return;
   }
   if (message.type === 'result') {
+    sessionId = message.session_id;
     trace.emit(
       'done',
       message.subtype === 'success' ? 'Turn complete' : `Turn ended: ${message.subtype}`,
       {
         duration_ms: message.duration_ms,
+        session_id: message.session_id,
         num_turns: message.num_turns,
       },
     );
@@ -158,6 +163,7 @@ async function run(prompt: string) {
         ],
         maxTurns: 6,
         abortController: controller,
+        resume: sessionId,
       },
     })) {
       record(message);
