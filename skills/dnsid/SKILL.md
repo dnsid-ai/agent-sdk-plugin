@@ -6,7 +6,7 @@ description:
   "DNSid:" appears at session start about this agent's own identity, whenever
   you are about to call another agent or service by URL (use the dnsid `fetch`
   tool, not WebFetch), and whenever the user asks whether another agent's
-  identity is verified or can be trusted.
+  identity is verified or can be trusted (use the dnsid `verify` tool).
 ---
 
 # DNSid in this session
@@ -38,6 +38,21 @@ sentences and stop. The shapes:
 - `DNSid: verification did not complete: <detail>`: the hook itself failed. It
   denies because letting the call through unverified would be worse. Tell the
   user; it is an operator problem, not a peer problem.
+
+## Asking about an agent without calling it
+
+The `dnsid` server's `verify` tool returns the verdict on a domain, the same one
+the hook applies, without sending the peer anything. Use it when the user asks
+whether an agent is who it says, or before a call you want to explain. Read it
+like this:
+
+- `ok: true`: the identity verified. Only `state: ACTIVE` means it may be
+  called; `REVOKED` or `RETIRED` means it exists but is not live. `expiresAt`
+  says how long the verdict holds.
+- `ok: false`: a complete answer, not an error. Branch on `code`, never on
+  `message`. `cannotVerify: true` means this verifier could not check at all;
+  say so, and do not describe the peer as bad. `transient: true` means the check
+  did not complete and may be tried again later.
 
 ## Calling another agent
 

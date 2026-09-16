@@ -20,9 +20,12 @@ const list = (value: string | undefined) =>
     .filter(Boolean);
 
 function algorithmFromEnv(env: NodeJS.ProcessEnv): AwsKmsSigningAlgorithm {
-  const algorithm = (env.DNSID_AWS_KMS_ALGORITHM ?? 'ED25519_SHA_512') as AwsKmsSigningAlgorithm;
+  const algorithm = (env.DNSID_AWS_KMS_ALGORITHM ??
+    'ED25519_SHA_512') as AwsKmsSigningAlgorithm;
   if (!ALGORITHMS.has(algorithm)) {
-    throw new Error(`DNSID_AWS_KMS_ALGORITHM must be one of ${[...ALGORITHMS].join(', ')}`);
+    throw new Error(
+      `DNSID_AWS_KMS_ALGORITHM must be one of ${[...ALGORITHMS].join(', ')}`,
+    );
   }
   return algorithm;
 }

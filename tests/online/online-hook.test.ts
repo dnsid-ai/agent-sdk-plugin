@@ -6,7 +6,7 @@ import {
   bringOnline,
   singleKeyFromJwks,
   type Registry,
-} from '../../src/online/bring-online.ts';
+} from '../../src/online/online-hook.ts';
 import { issuanceFile } from '../../src/online/issuance-file.ts';
 
 const identity = {

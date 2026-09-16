@@ -9,9 +9,9 @@ Two agents on DNSid Local. Alice runs the plugin. Bob is the peer she calls.
 | `bob.ts`       | A plain HTTP server behind the proxy. Answers `GET`; verifies signed `POST`.    |
 | `.env.example` | Model credentials. Copy to `.env`.                                              |
 
-The guide shows `alice.ts` and `bob.ts` in full;
-`tests/examples/minimal.test.ts` keeps them identical. Inside this repo they
-import the plugin by package name, which Node resolves to the repo itself.
+The guide shows `alice.ts` and `bob.ts` in full; `tests/examples/guide.test.ts`
+keeps them identical. Inside this repo they import the plugin by package name,
+which Node resolves to the repo itself.
 
 ## Quickstart
 

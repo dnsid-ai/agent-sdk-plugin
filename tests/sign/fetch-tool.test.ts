@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { VerificationError } from '@identity-digital/dnsid';
 import type { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
 
-import { fetchInput, signedFetch } from '../../src/sign/signed-fetch.ts';
+import { fetchInput, signedFetch } from '../../src/sign/fetch-tool.ts';
 import { AGENT } from '../shared/fixtures/identity.ts';
 import { aliceAndBob } from '../shared/fixtures/alice-and-bob.ts';
 

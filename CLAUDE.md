@@ -1,10 +1,10 @@
 # dnsid-agent-sdk-plugin
 
 A standard Agent SDK plugin, all TypeScript on `dnsid-ts`, run by Node. Rules
-that hold: enforcement is a hook, signing is a tool, onboarding is a
-`SessionStart` hook, and the model can decline none of them. Only `src/sign/`
-and `src/online/` touch key material. "Cannot verify" never maps to allow.
-Configuration is environment variables only.
+that hold: enforcement is a hook, signing and on-request verification are tools,
+onboarding is a `SessionStart` hook, and the model can decline none of them.
+Only `src/sign/` and `src/online/` touch key material. "Cannot verify" never
+maps to allow. Configuration is environment variables only.
 
 ## Setup and checks
 
@@ -29,7 +29,7 @@ real run on DNSid Local; a claim not yet run carries a `**TODO (for us).**` note
 that says what to run. Running `alice.ts` needs model credentials the agent
 session does not have, so ask the user to run it. The guide shows
 `examples/minimal/alice.ts` and `examples/minimal/bob.ts` verbatim;
-`tests/examples/minimal.test.ts` enforces it.
+`tests/examples/guide.test.ts` enforces it.
 
 Writing rules: Simplified Technical English, zero hard violations from the
 `asd-ste100` lint. Command, then what it did. Introduce a thing before its short

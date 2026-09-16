@@ -8,7 +8,7 @@ import { text } from 'node:stream/consumers';
 try {
   // Imported inside the try, so a failed import is reported, not a crash.
   const [{ runBringOnlineHook }, stdin] = await Promise.all([
-    import('./bring-online.ts'),
+    import('./online-hook.ts'),
     text(process.stdin),
   ]);
   const output = await runBringOnlineHook({ stdin });
