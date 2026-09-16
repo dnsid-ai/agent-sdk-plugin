@@ -1,5 +1,5 @@
 import type { HookJSONOutput, PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
-import type { IdentityManager } from '@identity-digital/dnsid';
+import type { IdentityManager } from '@dnsid-ai/sdk';
 
 import { readHookConfig } from './config.ts';
 import { decide, type Decision } from './decide.ts';

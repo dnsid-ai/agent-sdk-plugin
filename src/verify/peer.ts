@@ -3,7 +3,7 @@
  * verifier. The hook and the verify tool both go through here, so they never
  * disagree.
  */
-import type { IdentityManager } from '@identity-digital/dnsid';
+import type { IdentityManager } from '@dnsid-ai/sdk';
 
 import { VerdictCache } from './cache.ts';
 import { readVerifierConfig, type HookConfig } from './config.ts';

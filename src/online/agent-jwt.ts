@@ -8,7 +8,7 @@
  * `exp - iat` is at most 15 minutes, `jti` is single-use, and `purpose`
  * names the one operation an agent may authorize itself for.
  */
-import { jwkSignatureAlg, toBase64Url, type KeyProvider } from '@identity-digital/dnsid';
+import { jwkSignatureAlg, toBase64Url, type KeyProvider } from '@dnsid-ai/sdk';
 
 const b64 = (s: string) => toBase64Url(new TextEncoder().encode(s));
 

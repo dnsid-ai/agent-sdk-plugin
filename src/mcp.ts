@@ -7,7 +7,7 @@
  */
 import { McpServer } from '@modelcontextprotocol/server';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
+import { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
 
 import { agentIdentity, dnsidFetch } from './shared/identity.ts';
 import { verifyInput, verifyToolDescription, verifyTool } from './verify/verify-tool.ts';
@@ -17,7 +17,7 @@ import { fetchInput, fetchToolDescription, signedFetch } from './sign/fetch-tool
 // the model never sees a broken tool.
 const { idm, keyProvider } = await agentIdentity();
 const profile = new HttpSignaturesProfile({
-  domain: idm.config.domain,
+  domain: idm.config.identity!.domain,
   keyProvider,
   identityResolver: idm,
 });

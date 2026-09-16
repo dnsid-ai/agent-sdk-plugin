@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { importJWK, jwtVerify, decodeProtectedHeader } from 'jose';
 import { describe, expect, it, vi } from 'vitest';
-import { LocalKeyProvider } from '@identity-digital/dnsid/node';
+import { LocalKeyProvider } from '@dnsid-ai/sdk/node';
 
 import { agentAuthFetch, mintAgentJwt } from '../../src/online/agent-jwt.ts';
 

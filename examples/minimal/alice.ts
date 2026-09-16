@@ -9,10 +9,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 
 const prompt = process.argv[2] ?? 'Say hello and stop.';
 const pluginRoot = fileURLToPath(
-  new URL(
-    '.',
-    import.meta.resolve('@identity-digital/dnsid-agent-sdk-plugin/package.json'),
-  ),
+  new URL('.', import.meta.resolve('@dnsid-ai/agent-sdk-plugin/package.json')),
 );
 
 // DNSid Local only: its registry has an HTTPS name only through the proxy,

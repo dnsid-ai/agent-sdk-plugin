@@ -12,7 +12,7 @@
  * again. To break the signature, change `record` and do not sign it again.
  */
 import { exportJWK, generateKeyPair } from 'jose';
-import { DNSID_DRAFT01_VERSION } from '@identity-digital/dnsid-protocol';
+import { DNSID_DRAFT01_VERSION } from '@dnsid-ai/protocol';
 import {
   DNSSECState,
   DnsIdTxtRecord,
@@ -25,7 +25,7 @@ import {
   type LogReader,
   type LoggedStateEvidence,
   type TXTRecord,
-} from '@identity-digital/dnsid';
+} from '@dnsid-ai/sdk';
 
 export const AGENT = 'agent.example.com';
 export const GOVERNANCE = 'example.com';

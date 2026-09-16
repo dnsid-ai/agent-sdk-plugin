@@ -15,12 +15,12 @@ import {
   type KeyProvider,
   type ManagedIssuanceCoordination,
   type ManagedIssuanceRegistry,
-} from '@identity-digital/dnsid';
+} from '@dnsid-ai/sdk';
 import {
   DEFAULT_REGISTRY_URL,
   RegistryClient,
   type AgentRegistration,
-} from '@identity-digital/dnsid-registry';
+} from '@dnsid-ai/registry';
 
 import { agentAuthFetch, mintAgentJwt } from './agent-jwt.ts';
 import { issuanceFile } from './issuance-file.ts';
@@ -128,8 +128,8 @@ export async function runBringOnlineHook({
 
   const { idm, keyProvider } = await agentIdentity(env);
   const identity: Identity = {
-    domain: idm.config.domain,
-    governanceId: idm.config.governanceId,
+    domain: idm.config.identity!.domain,
+    governanceId: idm.config.identity!.governanceId,
     keyProvider,
   };
 

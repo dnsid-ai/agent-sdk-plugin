@@ -4,7 +4,7 @@
  * hook's cache so the two never disagree.
  */
 import { z } from 'zod';
-import type { IdentityManager } from '@identity-digital/dnsid';
+import type { IdentityManager } from '@dnsid-ai/sdk';
 
 import { readHookConfig } from './config.ts';
 import { verdictFor } from './peer.ts';

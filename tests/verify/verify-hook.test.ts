@@ -7,8 +7,8 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { DNSSECState, VerificationCode } from '@identity-digital/dnsid';
-import { createNodeIdentityVerifier } from '@identity-digital/dnsid/node';
+import { DNSSECState, VerificationCode } from '@dnsid-ai/sdk';
+import { createNodeIdentityVerifier } from '@dnsid-ai/sdk/node';
 
 import { runVerifyHook } from '../../src/verify/verify-hook.ts';
 import {
@@ -22,11 +22,14 @@ async function setup(
   env: NodeJS.ProcessEnv = {},
   { withLog = true } = {},
 ) {
-  const idm = await createNodeIdentityVerifier({
-    dnsResolver: fixture.dnsResolver,
-    fetchJson: fixture.fetchJson,
-    ...(withLog ? { logRegistry: fixture.logRegistry } : {}),
-  });
+  const idm = await createNodeIdentityVerifier(
+    {},
+    {
+      dnsResolver: fixture.dnsResolver,
+      fetchJson: fixture.fetchJson,
+      ...(withLog ? { logRegistry: fixture.logRegistry } : {}),
+    },
+  );
   const cacheFile = join(mkdtempSync(join(tmpdir(), 'dnsid-')), 'v.json');
   const log = vi.fn();
   const run = (input: Record<string, unknown> = {}) =>

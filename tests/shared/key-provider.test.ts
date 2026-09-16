@@ -1,7 +1,7 @@
 /** The selector: nothing without the variable, a working KMS provider with it, against a stub KMS. */
 import { describe, expect, it, vi } from 'vitest';
-import { toArrayBuffer } from '@identity-digital/dnsid';
-import type { AwsKmsFacade } from '@identity-digital/dnsid-key-aws';
+import { toArrayBuffer } from '@dnsid-ai/sdk';
+import type { AwsKmsFacade } from '@dnsid-ai/key-aws';
 
 import { keyProviderFromEnv } from '../../src/shared/key-provider.ts';
 

@@ -3,8 +3,8 @@
  * to the verifier, which is what a server would do with it.
  */
 import { describe, expect, it } from 'vitest';
-import { VerificationError } from '@identity-digital/dnsid';
-import type { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
+import { VerificationError } from '@dnsid-ai/sdk';
+import type { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
 
 import { fetchInput, signedFetch } from '../../src/sign/fetch-tool.ts';
 import { AGENT } from '../shared/fixtures/identity.ts';

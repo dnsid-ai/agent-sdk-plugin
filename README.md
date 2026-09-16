@@ -71,7 +71,7 @@ URLs.
 host-side to force the signed path.
 
 A peer verifies with the same verifier the hook uses:
-`import { createVerifier } from '@identity-digital/dnsid-agent-sdk-plugin/verify'`.
+`import { createVerifier } from '@dnsid-ai/agent-sdk-plugin/verify'`.
 `examples/minimal/bob.ts` does.
 
 ## 3. Bring itself online (`src/online/`)
