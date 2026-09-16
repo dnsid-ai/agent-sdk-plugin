@@ -1,10 +1,11 @@
-# dnsid-agent-sdk-plugin
+# @dnsid-ai/agent-sdk-plugin
 
 A standard Agent SDK plugin, all TypeScript on `dnsid-ts`, run by Node. Rules
 that hold: enforcement is a hook, signing and on-request verification are tools,
 onboarding is a `SessionStart` hook, and the model can decline none of them.
-Only `src/sign/` and `src/online/` touch key material. "Cannot verify" never
-maps to allow. Configuration is environment variables only.
+Only `src/sign/`, `src/online/`, and `src/mcp.ts` touch key material;
+`src/verify/` holds no identity. "Cannot verify" never maps to allow.
+Configuration is environment variables only.
 
 ## Setup and checks
 
@@ -44,8 +45,17 @@ Commit only when asked. Stage by file name, never by directory. One change per
 commit. Messages are Conventional Commits, one line, no trailers or co-authors:
 `<type>(<scope>): <what changed>`, with types `feat`, `fix`, `refactor`, `test`,
 `docs`, `chore` and the scope a slice or area (`verify`, `sign`, `online`,
-`demo`, `guide`, `skill`). Never push to a shared branch unless asked. When
-asked "do we need X", answer honestly even if it undoes work.
+`demo`, `guide`, `skill`). `main` is protected: pull requests only, signed
+commits; work on a branch. Never push unless asked. When asked "do we need X",
+answer honestly even if it undoes work.
+
+## The demo
+
+`examples/demo` is standalone: `npm run dev` there starts Alice and Bob under
+`dnsid testnet run` and a Vite page. Alice's server turns the SDK's message
+stream into trace events. The SDK reports SessionStart hooks but not PreToolUse
+ones, so the verify hook's decision is read from its verdict cache, or inferred
+from a tool result that carries an HTTP status.
 
 ## DNSid Local
 

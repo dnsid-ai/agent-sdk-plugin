@@ -1,4 +1,4 @@
-# dnsid-agent-sdk-plugin
+# @dnsid-ai/agent-sdk-plugin
 
 DNSid identity for agents built on the
 [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk), as a standard
@@ -13,7 +13,8 @@ plugin. Load it and the agent:
    transparency-log ISSUANCE, authenticating with its own key.
 
 [`docs/guide.md`](docs/guide.md) walks through all three on a local testnet.
-[`examples/demo`](examples/demo/) shows them side by side in a browser.
+[`examples/demo`](examples/demo/) is a chat with Alice where every step renders
+as a card.
 
 ## Setup
 
@@ -125,7 +126,7 @@ src/online/          hook.ts, online-hook.ts, the agent JWT, the issuance file
 src/shared/          identity and key selection, used by sign and online
 tests/               mirrors src/; needs no model and no network
 examples/minimal/    alice.ts, the guide's agent; bob.ts, the peer it calls
-examples/demo/       the two agents side by side in a browser, the signed request on the wire
+examples/demo/       a chat with Alice; each protocol step is a card, Bob's side included
 ```
 
 ## License
