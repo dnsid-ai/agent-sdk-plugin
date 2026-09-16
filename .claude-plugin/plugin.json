@@ -1,0 +1,5 @@
+{
+  "name": "dnsid",
+  "version": "0.0.0",
+  "description": "DNSid identity for agents: verify peers, sign requests, bring the agent online."
+}

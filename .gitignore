@@ -1,0 +1,15 @@
+node_modules/
+*.log
+
+# Local secrets.
+.env
+
+# Agent tooling, local to a checkout.
+/.agents/
+/.claude/
+/skills-lock.json
+
+# `npm run link-sdk` installs with `--no-package-lock`, so a committed
+# lockfile cannot describe a working tree. Track it when the SDK publishes.
+/package-lock.json
+examples/.env

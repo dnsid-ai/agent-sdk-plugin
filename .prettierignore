@@ -1,0 +1,3 @@
+# Vendored, not ours to reformat.
+.agents/
+package-lock.json
