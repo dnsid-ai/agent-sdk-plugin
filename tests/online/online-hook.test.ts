@@ -1,12 +1,12 @@
 /** The decision on the registration status, with the SDK's issuance step injected. */
 import { describe, expect, it, vi } from 'vitest';
-import type { AgentRegistration } from '@identity-digital/dnsid-registry';
+import type { AgentRegistration } from '@dnsid-ai/registry';
 
 import {
   bringOnline,
   singleKeyFromJwks,
   type Registry,
-} from '../../src/online/bring-online.ts';
+} from '../../src/online/online-hook.ts';
 import { issuanceFile } from '../../src/online/issuance-file.ts';
 
 const identity = {

@@ -117,7 +117,7 @@ Make a directory for Alice, and install the Agent SDK and the plugin:
 ```sh
 mkdir alice && cd alice
 npm init -y && npm pkg set type=module
-npm install @anthropic-ai/claude-agent-sdk @identity-digital/dnsid-agent-sdk-plugin
+npm install @anthropic-ai/claude-agent-sdk @dnsid-ai/agent-sdk-plugin
 ```
 
 > **TODO (for us, remove before publishing).** Neither the plugin nor `dnsid-ts`
@@ -132,9 +132,7 @@ npm install @anthropic-ai/claude-agent-sdk @identity-digital/dnsid-agent-sdk-plu
 >
 > Section 4 installs `../dnsid-ts/packages/sdk` and
 > `../dnsid-ts/packages/http-signatures` the same way. Remove the type cast in
-> `src/shared/key-provider.ts` when `dnsid-ts` is published. The npm scope will
-> likely be `@dnsid-ai/`, not `@identity-digital/`. Update the install lines and
-> `package.json` when it is decided.
+> `src/shared/key-provider.ts` when `dnsid-ts` is published.
 
 Save this as `alice.ts`:
 
@@ -150,10 +148,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 
 const prompt = process.argv[2] ?? 'Say hello and stop.';
 const pluginRoot = fileURLToPath(
-  new URL(
-    '.',
-    import.meta.resolve('@identity-digital/dnsid-agent-sdk-plugin/package.json'),
-  ),
+  new URL('.', import.meta.resolve('@dnsid-ai/agent-sdk-plugin/package.json')),
 );
 
 // DNSid Local only: its registry has an HTTPS name only through the proxy,
@@ -374,9 +369,9 @@ next to `alice.ts`:
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';
-import { VerificationError } from '@identity-digital/dnsid';
-import { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
-import { createVerifier } from '@identity-digital/dnsid-agent-sdk-plugin/verify';
+import { VerificationError } from '@dnsid-ai/sdk';
+import { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
+import { createVerifier } from '@dnsid-ai/agent-sdk-plugin/verify';
 
 export function handler(domain: string, bob: HttpSignaturesProfile) {
   return async (request: Request): Promise<Response> => {
@@ -434,7 +429,7 @@ It answers `GET` to anyone, and verifies the signature on every `POST`. Section
 another terminal:
 
 ```sh
-npm install @identity-digital/dnsid @identity-digital/dnsid-http-signatures
+npm install @dnsid-ai/sdk @dnsid-ai/http-signatures
 dnsid testnet run bob --port 3002 -- node bob.ts
 ```
 

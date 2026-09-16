@@ -4,7 +4,7 @@
  * the response. Whether the peer may be called is the verify hook's decision.
  */
 import { z } from 'zod';
-import type { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
+import type { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
 
 export const fetchInput = z.object({
   url: z

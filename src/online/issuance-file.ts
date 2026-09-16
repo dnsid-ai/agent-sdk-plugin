@@ -11,7 +11,7 @@ import {
   toBase64Url,
   type ManagedIssuanceCoordination,
   type ManagedIssuanceState,
-} from '@identity-digital/dnsid';
+} from '@dnsid-ai/sdk';
 
 type Stored = Omit<ManagedIssuanceState, 'entryBytes'> & { entryBytes?: string };
 

@@ -20,7 +20,7 @@ built `../dnsid-ts` linked with `npm run link-sdk`.
 
 ```sh
 # 1. Model credentials. Or export ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN.
-cp examples/.env.example examples/.env && $EDITOR examples/.env
+cp examples/minimal/.env.example examples/minimal/.env && $EDITOR examples/minimal/.env
 
 # 2. DNSid Local, with two agents. Until dnsid PR #2371 is in the published
 #    image, build it from that branch; the guide's section 1 has the command.
@@ -30,10 +30,10 @@ dnsid testnet agent add bob   --upstream http://localhost:3002
 
 # 3. Bob: bring him online and start his server, in its own terminal.
 dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
-dnsid testnet run bob --port 3002 -- node examples/bob.ts
+dnsid testnet run bob --port 3002 -- node examples/minimal/bob.ts
 
 # 4. Alice. The plugin brings her online at session start.
-dnsid testnet run alice --port 3001 -- node --env-file-if-exists=examples/.env examples/alice.ts \
+dnsid testnet run alice --port 3001 -- node --env-file-if-exists=examples/minimal/.env examples/minimal/alice.ts \
   'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response and stop.'
 ```
 

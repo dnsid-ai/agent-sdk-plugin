@@ -3,8 +3,8 @@
  * identity in DNSID_CONFIG_DIR, the key that signs for it, and a fetch that
  * honors DNSID_DNS_SERVER and DNSID_CA_BUNDLE.
  */
-import { createNodeIdentityManagerFromDnsid } from '@identity-digital/dnsid/node';
-import { createDnsidFetch } from '@identity-digital/dnsid-transport';
+import { createNodeIdentityManagerFromDnsid } from '@dnsid-ai/sdk/node';
+import { createDnsidFetch } from '@dnsid-ai/transport';
 
 import { keyProviderFromEnv } from './key-provider.ts';
 

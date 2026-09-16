@@ -5,7 +5,7 @@
  * The shim is the authority: mirror it.
  */
 import { z } from 'zod';
-import type { DnsIdTxtRecord } from '@identity-digital/dnsid';
+import type { DnsIdTxtRecord } from '@dnsid-ai/sdk';
 
 /** The shim's rule: absent and empty both become `null`. */
 const optional = (value: string | undefined): string | null =>

@@ -13,6 +13,7 @@ plugin. Load it and the agent:
    transparency-log ISSUANCE, authenticating with its own key.
 
 [`docs/guide.md`](docs/guide.md) walks through all three on a local testnet.
+[`examples/demo`](examples/demo/) shows them side by side in a browser.
 
 ## Setup
 
@@ -41,12 +42,13 @@ to sign with an AWS KMS key instead of `private.jwk`.
 
 A `PreToolUse` hook runs on `WebFetch` and every `mcp__*` tool.
 
-| Tool                             | Peer verified                                        |
-| -------------------------------- | ---------------------------------------------------- |
-| `WebFetch`                       | hostname of `url`                                    |
-| `mcp__plugin_dnsid_dnsid__fetch` | hostname of `url`                                    |
-| `mcp__<server>__*`               | `DNSID_MCP_SERVER_DOMAINS[server]`, if you mapped it |
-| anything else, including `Bash`  | not verified                                         |
+| Tool                              | Peer verified                                        |
+| --------------------------------- | ---------------------------------------------------- |
+| `WebFetch`                        | hostname of `url`                                    |
+| `mcp__plugin_dnsid_dnsid__fetch`  | hostname of `url`                                    |
+| `mcp__plugin_dnsid_dnsid__verify` | not verified: it calls no one                        |
+| `mcp__<server>__*`                | `DNSID_MCP_SERVER_DOMAINS[server]`, if you mapped it |
+| anything else, including `Bash`   | not verified                                         |
 
 `ACTIVE` allows, and your own permission rules still run. Anything else denies
 with a reason starting `DNSid:`, even in `bypassPermissions` mode. "Cannot
@@ -56,19 +58,21 @@ failures for 30 seconds.
 
 ## 2. Be verifiable (`src/sign/`)
 
-`.mcp.json` starts a stdio MCP server with one tool,
-`fetch(url, method, headers, body, tag)`. It signs the request with the agent's
-operational key in the DNSid HTTP Message Signatures profile (RFC 9421, `keyid`
-= `<domain>#<kid>`), sends it, and returns status, headers, and body. The
-signature covers method, authority, target URI, the body digest, and every
-header passed. Redirects are returned, not followed. Only `https:` URLs.
+`.mcp.json` starts a stdio MCP server with two tools. `verify(domain)` returns
+the verdict on a peer, the same one the hook applies and from the same cache,
+without calling it. `fetch(url, method, headers, body, tag)` signs the request
+with the agent's operational key in the DNSid HTTP Message Signatures profile
+(RFC 9421, `keyid` = `<domain>#<kid>`), sends it, and returns status, headers,
+and body. The signature covers method, authority, target URI, the body digest,
+and every header passed. Redirects are returned, not followed. Only `https:`
+URLs.
 
 `WebFetch` stays available and unsigned; pass `disallowedTools: ['WebFetch']`
 host-side to force the signed path.
 
 A peer verifies with the same verifier the hook uses:
-`import { createVerifier } from '@identity-digital/dnsid-agent-sdk-plugin/verify'`.
-`examples/bob.ts` does.
+`import { createVerifier } from '@dnsid-ai/agent-sdk-plugin/verify'`.
+`examples/minimal/bob.ts` does.
 
 ## 3. Bring itself online (`src/online/`)
 
@@ -113,14 +117,15 @@ bad value fails the hook, and the hook denies.
 
 ```
 hooks/hooks.json     PreToolUse → src/verify/hook.ts, SessionStart → src/online/hook.ts
-.mcp.json            dnsid → src/sign/server.ts
+.mcp.json            dnsid → src/mcp.ts, the verify and fetch tools
 skills/dnsid/        what a `DNSid:` message means, for the model
-src/verify/          the hook, host extraction, the SDK verifier, verdicts, the cache
-src/sign/            the MCP server and the signed fetch
-src/online/          the hook, the agent JWT, the issuance file
+src/verify/          hook.ts, verify-hook.ts, verify-tool.ts; host extraction, the SDK verifier, verdicts, the cache
+src/sign/            fetch-tool.ts, the signed fetch
+src/online/          hook.ts, online-hook.ts, the agent JWT, the issuance file
 src/shared/          identity and key selection, used by sign and online
 tests/               mirrors src/; needs no model and no network
-examples/            alice.ts, the guide's agent; bob.ts, the peer it calls
+examples/minimal/    alice.ts, the guide's agent; bob.ts, the peer it calls
+examples/demo/       the two agents side by side in a browser, the signed request on the wire
 ```
 
 ## License

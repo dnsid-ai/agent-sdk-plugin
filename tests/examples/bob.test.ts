@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { handler } from '../../examples/bob.ts';
+import { handler } from '../../examples/minimal/bob.ts';
 import { AGENT } from '../shared/fixtures/identity.ts';
 import { BOB, aliceAndBob } from '../shared/fixtures/alice-and-bob.ts';
 

@@ -11,7 +11,7 @@ import {
   VerificationError,
   jwkThumbprint,
   type IdentityManager,
-} from '@identity-digital/dnsid';
+} from '@dnsid-ai/sdk';
 
 import { record, recordJSON } from './compliance.ts';
 

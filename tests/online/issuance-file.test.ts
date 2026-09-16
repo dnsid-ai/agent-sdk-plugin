@@ -3,7 +3,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { ManagedIssuanceState } from '@identity-digital/dnsid';
+import type { ManagedIssuanceState } from '@dnsid-ai/sdk';
 
 import { issuanceFile } from '../../src/online/issuance-file.ts';
 

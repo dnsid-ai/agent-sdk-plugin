@@ -2,18 +2,19 @@
  * Builds a verify-only `IdentityManager` from `VerifierConfig`. The hook
  * holds no identity of its own, so it never sets a `keyProvider`. Copied
  * from dnsid-mcp and since diverged: the log transport honors the configured
- * DNS server and CA, and `allowPrivateHosts` exists for testnets.
+ * DNS server and CA, and `allowPrivateHosts` names testnet hosts that resolve
+ * to this machine.
  */
 import { readFile } from 'node:fs/promises';
-import type { IdentityManager } from '@identity-digital/dnsid';
-import { createNodeIdentityVerifier } from '@identity-digital/dnsid/node';
+import type { IdentityManager } from '@dnsid-ai/sdk';
+import { createNodeIdentityVerifier } from '@dnsid-ai/sdk/node';
 import {
   createC2spTlogVerificationRegistry,
   createDnsidManagedVerificationRegistry,
   createFetchBackedC2spResourceFetcher,
   requiredC2spResourceFetchGuarantees,
-} from '@identity-digital/dnsid-log-c2sp-tlog';
-import { createSsrfSafeFetch, fetchJson } from '@identity-digital/dnsid-transport';
+} from '@dnsid-ai/log-c2sp-tlog';
+import { createSsrfSafeFetch } from '@dnsid-ai/transport';
 import { readVerifierConfig, type VerifierConfig } from './config.ts';
 
 /**
@@ -73,20 +74,11 @@ export async function createVerifier(
   if (config.caBundlePath) await readFile(config.caBundlePath, 'utf8');
 
   const { dnsServer, caBundlePath, allowPrivateHosts } = config;
-  return createNodeIdentityVerifier({
-    config: { dnssecMode: config.dnssecMode, dnsServer, caBundlePath },
-    logRegistry,
-    // The SDK's own fetcher, with the private-host exemption threaded through.
-    // Left undefined when there is nothing to exempt, so the default applies.
-    fetchJson:
-      allowPrivateHosts.length === 0
-        ? undefined
-        : (url, opts) =>
-            fetchJson(url, {
-              ...opts,
-              dnsServer,
-              caBundlePath,
-              allowedUnsafeHosts: allowPrivateHosts,
-            }),
-  });
+  return createNodeIdentityVerifier(
+    {
+      verification: { dnssecMode: config.dnssecMode },
+      transport: { dnsServer, caBundlePath, allowedUnsafeHosts: allowPrivateHosts },
+    },
+    { logRegistry },
+  );
 }

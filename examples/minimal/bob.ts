@@ -7,9 +7,9 @@
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';
-import { VerificationError } from '@identity-digital/dnsid';
-import { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
-import { createVerifier } from '@identity-digital/dnsid-agent-sdk-plugin/verify';
+import { VerificationError } from '@dnsid-ai/sdk';
+import { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
+import { createVerifier } from '@dnsid-ai/agent-sdk-plugin/verify';
 
 export function handler(domain: string, bob: HttpSignaturesProfile) {
   return async (request: Request): Promise<Response> => {

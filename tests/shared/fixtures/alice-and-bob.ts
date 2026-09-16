@@ -8,12 +8,12 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { exportJWK, generateKeyPair } from 'jose';
-import type { DnsIdJWK } from '@identity-digital/dnsid';
+import type { DnsIdJWK } from '@dnsid-ai/sdk';
 import {
   createNodeIdentityManagerFromDnsid,
   createNodeIdentityVerifier,
-} from '@identity-digital/dnsid/node';
-import { HttpSignaturesProfile } from '@identity-digital/dnsid-http-signatures';
+} from '@dnsid-ai/sdk/node';
+import { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
 
 import { AGENT, GOVERNANCE, identityFixture } from './identity.ts';
 
@@ -58,7 +58,7 @@ export async function aliceAndBob() {
   );
   const bob = new HttpSignaturesProfile({
     domain: BOB,
-    identityResolver: await createNodeIdentityVerifier(transport),
+    identityResolver: await createNodeIdentityVerifier({}, transport),
   });
   return { alice, bob };
 }

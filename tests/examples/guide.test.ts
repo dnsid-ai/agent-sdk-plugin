@@ -7,6 +7,6 @@ describe('guide', () => {
     ...readFileSync('docs/guide.md', 'utf8').matchAll(/```ts\n([\s\S]*?)```/g),
   ].map((m) => m[1]);
   it.each(['alice.ts', 'bob.ts'])('shows examples/%s verbatim', (file) => {
-    expect(blocks).toContain(readFileSync(`examples/${file}`, 'utf8'));
+    expect(blocks).toContain(readFileSync(`examples/minimal/${file}`, 'utf8'));
   });
 });

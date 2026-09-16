@@ -5,7 +5,7 @@
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { DNSSECMode } from '@identity-digital/dnsid';
+import { DNSSECMode } from '@dnsid-ai/sdk';
 
 const hookEnv = z.object({
   /** `observe`: log the decision, never deny. */
