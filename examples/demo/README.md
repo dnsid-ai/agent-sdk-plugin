@@ -10,8 +10,9 @@ Nothing is simulated.
 ## Run it
 
 Prerequisites: Docker, Node 22.18 or later, the `dnsid` CLI, and model
-credentials for the Agent SDK (`ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`)
-in your shell. DNSid Local with three agents, one of them never issued:
+credentials for the Agent SDK: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`,
+in your shell or in `.env` here (copy `.env.example`). DNSid Local with three
+agents, one of them never issued:
 
 ```sh
 dnsid testnet up
@@ -34,9 +35,11 @@ npm run dev
 ```
 
 That starts Alice (Agent SDK + plugin, API on 4001), Bob (HTTP server on 3002,
-API on 4002), and the page at <http://localhost:5173>. The servers reload on
-edit. To run them separately: `npm run alice`, `npm run bob`, `npm run web`, the
-first two under `dnsid testnet run <agent>`.
+API on 4002), and the page at <http://localhost:5173>. If the page shows a
+**First boot** card, one of the two is unreachable; it lists the setup commands
+and reconnects on its own. The servers reload on edit. To run them separately:
+`npm run alice`, `npm run bob`, `npm run web`, the first two under
+`dnsid testnet run <agent>`.
 
 The chat is one Claude session: each prompt resumes the last, so Alice remembers
 earlier turns. She brings herself online when the session starts; the first

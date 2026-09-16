@@ -1,7 +1,8 @@
-# Examples
+# Minimal example
 
-Two agents on DNSid Local. Alice runs the plugin. Bob is the peer she calls.
-[`docs/guide.md`](../docs/guide.md) walks through both, one step at a time.
+Two agents on DNSid Local in two files. Alice runs the plugin. Bob is the peer
+she calls. [`docs/guide.md`](../../docs/guide.md) walks through both, one step
+at a time; [`../demo`](../demo/) is the same pair with a browser in front.
 
 | Path           | What it is                                                                      |
 | -------------- | ------------------------------------------------------------------------------- |
