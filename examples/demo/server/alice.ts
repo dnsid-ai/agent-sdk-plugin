@@ -157,10 +157,22 @@ async function run(prompt: string) {
       prompt,
       options: {
         plugins: [{ type: 'local', path: pluginRoot }],
+        // No built-in tools: Alice can only act through the plugin's two.
+        tools: [],
         allowedTools: [
           'mcp__plugin_dnsid_dnsid__fetch',
           'mcp__plugin_dnsid_dnsid__verify',
         ],
+        systemPrompt: {
+          type: 'preset',
+          preset: 'claude_code',
+          append: [
+            'You are Alice, an agent with a DNSid identity, talking to a person watching a demo.',
+            'Bob is another agent at https://bob.dev.dnsid.test/ (POST JSON to /). Carol is at https://carol.dev.dnsid.test/.',
+            'Use the dnsid verify tool to check who an agent is, and the dnsid fetch tool to call one.',
+            'Answer in one or two plain sentences. Never mention files, permissions, or tools you lack.',
+          ].join(' '),
+        },
         maxTurns: 6,
         abortController: controller,
         resume: sessionId,
