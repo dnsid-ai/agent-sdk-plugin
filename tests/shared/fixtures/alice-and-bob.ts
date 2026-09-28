@@ -54,7 +54,7 @@ export async function aliceAndBob() {
     logRegistry: fixture.logRegistry,
   };
   const alice = HttpSignaturesProfile.fromIdentityManager(
-    await createNodeIdentityManagerFromDnsid({ dnsidDir: dir, ...transport }),
+    await createNodeIdentityManagerFromDnsid(dir, undefined, transport),
   );
   const bob = new HttpSignaturesProfile({
     domain: BOB,

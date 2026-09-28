@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { text } from 'node:stream/consumers';
 import { fileURLToPath } from 'node:url';
 import { query, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import { createNodeIdentityManagerFromDnsid } from '@dnsid-ai/sdk/node';
+import { createNodeIdentityManagerFromEnvironment } from '@dnsid-ai/sdk/node';
 
 import { Trace, dnsidRecord, json, testnetEnv } from './trace.ts';
 
@@ -186,7 +186,7 @@ async function run(prompt: string) {
 }
 
 testnetEnv(['bob', 'carol']);
-const idm = await createNodeIdentityManagerFromDnsid();
+const idm = await createNodeIdentityManagerFromEnvironment();
 const domain = idm.config.identity!.domain;
 const kid = (await idm.getKeyProvider().signingKey()).kid;
 
