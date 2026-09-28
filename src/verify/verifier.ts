@@ -2,7 +2,7 @@
  * Builds a verify-only `IdentityManager` from `VerifierConfig`. The hook
  * holds no identity of its own, so it never sets a `keyProvider`. Copied
  * from dnsid-mcp and since diverged: the log transport honors the configured
- * DNS server and CA, and `allowPrivateHosts` names testnet hosts that resolve
+ * DNS server and CA, and `privateAddressHosts` names testnet hosts that resolve
  * to this machine.
  */
 import { readFile } from 'node:fs/promises';
@@ -51,15 +51,15 @@ function logResourceFetcher({
   dnsServer,
   caBundlePath,
   logPolicy,
-  allowPrivateHosts,
+  privateAddressHosts,
 }: VerifierConfig) {
   if (!dnsServer && !caBundlePath) return;
-  const allowedUnsafeHosts = [
+  const hosts = [
     ...(logPolicy && 'url' in logPolicy ? [new URL(logPolicy.url).hostname] : []),
-    ...allowPrivateHosts,
+    ...privateAddressHosts,
   ];
   return createFetchBackedC2spResourceFetcher(
-    createSsrfSafeFetch({ dnsServer, caBundlePath }, { allowedUnsafeHosts }),
+    createSsrfSafeFetch({ dnsServer, caBundlePath }, { privateAddressHosts: hosts }),
     requiredC2spResourceFetchGuarantees(),
   );
 }
@@ -73,11 +73,11 @@ export async function createVerifier(
   // instead, so a bad path stops the server at startup.
   if (config.caBundlePath) await readFile(config.caBundlePath, 'utf8');
 
-  const { dnsServer, caBundlePath, allowPrivateHosts } = config;
+  const { dnsServer, caBundlePath, privateAddressHosts } = config;
   return createNodeIdentityVerifier(
     {
       verification: { dnssecMode: config.dnssecMode },
-      transport: { dnsServer, caBundlePath, allowedUnsafeHosts: allowPrivateHosts },
+      transport: { dnsServer, caBundlePath, privateAddressHosts },
     },
     { logRegistry },
   );

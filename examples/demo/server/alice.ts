@@ -185,7 +185,7 @@ async function run(prompt: string) {
   }
 }
 
-testnetEnv(['bob', 'carol']);
+testnetEnv();
 const idm = await createNodeIdentityManagerFromEnvironment();
 const domain = idm.config.identity!.domain;
 const kid = (await idm.getKeyProvider().signingKey()).kid;

@@ -59,7 +59,7 @@ function handler(domain: string, bob: HttpSignaturesProfile) {
 
 const domain = process.env.DNSID_DOMAIN;
 if (!domain) throw new Error('DNSID_DOMAIN is not set');
-testnetEnv(['alice']);
+testnetEnv();
 
 const respond = handler(
   domain,

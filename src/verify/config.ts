@@ -70,8 +70,9 @@ const verifierEnv = z
       .optional(),
     DNSID_LOG_POLICY_FILE: z.string().min(1).optional(),
     DNSID_LOG_CHECKPOINT_MAX_AGE: z.coerce.number().int().positive().optional(),
-    // Hosts allowed to resolve to loopback or private addresses. Testnets only.
-    DNSID_ALLOW_PRIVATE_HOSTS: z
+    // Hosts, or `.suffix` entries, allowed to resolve to loopback or private
+    // addresses. Testnets only. The same variable the SDK and the CLI read.
+    DNSID_PRIVATE_HOSTS: z
       .string()
       .transform((value) =>
         value
@@ -100,7 +101,7 @@ export interface VerifierConfig {
   caBundlePath: string | undefined;
   logPolicy: { url: string } | { file: string } | undefined;
   checkpointMaxAge: number | undefined;
-  allowPrivateHosts: string[];
+  privateAddressHosts: string[];
 }
 
 export function readVerifierConfig(env: NodeJS.ProcessEnv = process.env): VerifierConfig {
@@ -113,6 +114,6 @@ export function readVerifierConfig(env: NodeJS.ProcessEnv = process.env): Verifi
     caBundlePath: parsed.DNSID_CA_BUNDLE,
     logPolicy: url ? { url } : file ? { file } : undefined,
     checkpointMaxAge: parsed.DNSID_LOG_CHECKPOINT_MAX_AGE,
-    allowPrivateHosts: parsed.DNSID_ALLOW_PRIVATE_HOSTS,
+    privateAddressHosts: parsed.DNSID_PRIVATE_HOSTS,
   };
 }

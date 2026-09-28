@@ -151,7 +151,7 @@ const pluginRoot = fileURLToPath(
 const zone = process.env.DNSID_TESTNET_ZONE;
 if (zone) {
   process.env.DNSID_AGENT_AUTH_AUDIENCE ??= `https://registry.${zone}`;
-  process.env.DNSID_ALLOW_PRIVATE_HOSTS ??= `bob.${zone},registry.${zone},dnsid.dnsid.test`;
+  process.env.DNSID_PRIVATE_HOSTS ??= `.${zone},dnsid.dnsid.test`;
 }
 
 for await (const message of query({
@@ -403,7 +403,7 @@ if (import.meta.main) {
   // DNSid Local only: see alice.ts.
   const zone = process.env.DNSID_TESTNET_ZONE;
   if (zone) {
-    process.env.DNSID_ALLOW_PRIVATE_HOSTS ??= `alice.${zone},registry.${zone},dnsid.dnsid.test`;
+    process.env.DNSID_PRIVATE_HOSTS ??= `.${zone},dnsid.dnsid.test`;
   }
 
   const respond = handler(
