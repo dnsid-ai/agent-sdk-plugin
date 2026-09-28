@@ -23,9 +23,9 @@ dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
 ```
 
 > **TODO (for us, remove before publishing).** `package.json` installs the
-> plugin and `dnsid-ts` from sibling checkouts (`file:` paths) until both are on
-> npm. `dnsid-ts` must be built first. The published registry image also needs
-> dnsid PR #2371; the guide's section 1 has the local build command.
+> plugin from this checkout (a `file:` path) until it is on npm. The published
+> registry image also needs dnsid PR #2371; the guide's section 1 has the local
+> build command.
 
 Then, from this directory:
 

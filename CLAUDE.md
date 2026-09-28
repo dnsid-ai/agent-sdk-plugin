@@ -9,9 +9,7 @@ Configuration is environment variables only.
 
 ## Setup and checks
 
-The `dnsid-ts` packages are not on npm, so plain `npm install` fails. Build the
-sibling checkout, then link it: `cd ../dnsid-ts && npm ci && npm run build`,
-then `npm run link-sdk` here. Done means `npm test`, `npm run typecheck`, and
+`npm install`, then done means `npm test`, `npm run typecheck`, and
 `npx prettier --check .` pass.
 
 ## Code

@@ -120,19 +120,14 @@ npm init -y && npm pkg set type=module
 npm install @anthropic-ai/claude-agent-sdk @dnsid-ai/agent-sdk-plugin
 ```
 
-> **TODO (for us, remove before publishing).** Neither the plugin nor `dnsid-ts`
-> is on npm. Until then, install from sibling checkouts:
+> **TODO (for us, remove before publishing).** The plugin is not on npm. Until
+> then, install it from a sibling checkout:
 >
 > ```sh
-> git clone git@github.com:dnsid-ai/dnsid-ts.git && (cd dnsid-ts && npm ci && npm run build)
-> git clone git@github.com:dnsid-ai/agent-sdk-plugin.git && (cd agent-sdk-plugin && npm install && npm run link-sdk)
+> git clone git@github.com:dnsid-ai/agent-sdk-plugin.git && (cd agent-sdk-plugin && npm install)
 > mkdir alice && cd alice && npm init -y && npm pkg set type=module
 > npm install @anthropic-ai/claude-agent-sdk ../agent-sdk-plugin
 > ```
->
-> Section 4 installs `../dnsid-ts/packages/sdk` and
-> `../dnsid-ts/packages/http-signatures` the same way. Remove the type cast in
-> `src/shared/key-provider.ts` when `dnsid-ts` is published.
 
 Save this as `alice.ts`:
 

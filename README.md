@@ -18,11 +18,8 @@ as a card.
 
 ## Setup
 
-Not on npm yet. It needs a built sibling checkout of `dnsid-ts`:
-
 ```sh
-cd ../dnsid-ts && npm ci && npm run build && cd -
-npm run link-sdk
+npm install
 npm test
 ```
 

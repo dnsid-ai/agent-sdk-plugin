@@ -5,11 +5,7 @@
  * `identity.ts` is the one caller.
  */
 import type { KeyProvider } from '@dnsid-ai/sdk';
-import type {
-  AwsKmsFacade,
-  AwsKmsSigningAlgorithm,
-  AwsSdkKmsClient,
-} from '@dnsid-ai/key-aws';
+import type { AwsKmsFacade, AwsKmsSigningAlgorithm } from '@dnsid-ai/key-aws';
 
 const ALGORITHMS = new Set<AwsKmsSigningAlgorithm>(['ED25519_SHA_512', 'ECDSA_SHA_256']);
 
@@ -35,10 +31,7 @@ function algorithmFromEnv(env: NodeJS.ProcessEnv): AwsKmsSigningAlgorithm {
 async function awsKmsFacade(): Promise<AwsKmsFacade> {
   const { AwsSdkKmsFacade } = await import('@dnsid-ai/key-aws');
   const { KMSClient } = await import('@aws-sdk/client-kms');
-  // The linked dnsid-ts checkout has its own copy of @aws-sdk/client-kms, so
-  // TypeScript sees two different KMSClient types. Remove the cast when
-  // dnsid-ts is on npm.
-  return new AwsSdkKmsFacade(new KMSClient({}) as unknown as AwsSdkKmsClient);
+  return new AwsSdkKmsFacade(new KMSClient({}));
 }
 
 /**

@@ -16,8 +16,7 @@ which Node resolves to the repo itself.
 
 ## Quickstart
 
-Prerequisites: Docker, Node 22.18 or later, the `dnsid` CLI on your PATH, and a
-built `../dnsid-ts` linked with `npm run link-sdk`.
+Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI on your PATH.
 
 ```sh
 # 1. Model credentials. Or export ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN.
