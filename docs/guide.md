@@ -31,46 +31,38 @@ identities that only your machine can resolve.
 Start it:
 
 ```sh
-dnsid testnet up
+dnsid local up
 ```
 
-> **TODO (for us, remove before publishing).** `testnet up` pulls
-> `ghcr.io/identity-digital/dnsid-testnet-registry:main`. That image serves the
-> agent detail at `/v1/status/<domain>` instead of the protocol status document,
-> so no verifier can verify a local identity. The fix is dnsid PR #2371. Until
-> it is merged and the image republished, build the image from that branch and
-> pass it:
->
-> ```sh
-> (cd ../dnsid && git checkout fix/local-status-document && \
->   docker build -f Dockerfile.local --secret id=github_token,src=<(gh auth token) -t dnsid-testnet-registry:status .)
-> dnsid testnet up --image dnsid-testnet-registry:status
-> ```
+> **TODO (for us, remove before publishing).** `local up` pulls
+> `ghcr.io/identity-digital/dnsid-local-registry:main`. The fix for the status
+> document, dnsid PR #2371, is merged. On the next run, make sure that a
+> verifier can verify a local identity with that image, then remove this note.
 
 A DNSid identity belongs to an agent, but an organization answers for it: the
 **accountable entity**, which owns the agent's domain. The **registry** is the
-DNSid service that manages identities for that organization. `testnet up`
-creates one organization, with the id `dnsid.test`, and every agent you add
-belongs to it.
+DNSid service that manages identities for that organization. `local up` creates
+one organization, with the id `dnsid.test`, and every agent you add belongs to
+it.
 
 Register two agents, Alice and Bob:
 
 ```sh
-dnsid testnet agent add alice --upstream http://localhost:3001
-dnsid testnet agent add bob   --upstream http://localhost:3002
+dnsid local agent add alice --upstream http://localhost:3001
+dnsid local agent add bob   --upstream http://localhost:3002
 ```
 
 `agent add alice` generated her keypair, the **operational key**, in
-`~/.dnsid-testnet/agents/alice.dev.dnsid.test/`, and registered the public key.
+`~/.dnsid-local/agents/alice.dev.dnsid.test/`, and registered the public key.
 The registry lists her as `VERIFIED`: accepted, not yet published.
 
-Every command from here on runs as Alice. `dnsid testnet run alice -- <cmd>`
-sets her environment: her key directory, and how to reach DNSid Local.
+Every command from here on runs as Alice. `dnsid local run alice -- <cmd>` sets
+her environment: her key directory, and how to reach DNSid Local.
 
 Ask the registry for Alice's status:
 
 ```sh
-dnsid testnet run alice --port 3001 -- dnsid status --domain alice.dev.dnsid.test
+dnsid local run alice --port 3001 -- dnsid status --domain alice.dev.dnsid.test
 ```
 
 ```
@@ -103,7 +95,7 @@ The "Next" line is what section 3 automates.
 >
 > `init` writes the same three files. `verify` and `challenge` prove you control
 > the domain and the key, and the registry publishes real DNS records. The
-> accountable entity is your organization. There is no `testnet run`.
+> accountable entity is your organization. There is no `local run`.
 > `DNSID_CONFIG_DIR` is the only variable to set.
 >
 > **TODO (for us).** Not run. The commands come from `dnsid/internal/cli` and
@@ -136,7 +128,7 @@ Save this as `alice.ts`:
  * Alice: an Agent SDK program with the DNSid plugin loaded. The guide runs it
  * with a different prompt per section; the program never changes.
  *
- *   dnsid testnet run alice --port 3001 -- node alice.ts '<prompt>'
+ *   dnsid local run alice --port 3001 -- node alice.ts '<prompt>'
  */
 import { fileURLToPath } from 'node:url';
 import { query } from '@anthropic-ai/claude-agent-sdk';
@@ -180,7 +172,7 @@ this directory.
 Run it as Alice. The prompt is the first argument:
 
 ```sh
-dnsid testnet run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
+dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
   'What does the DNSid line at the start of this session say about your own identity? Quote it and stop.'
 ```
 
@@ -221,7 +213,7 @@ entry that starts an identity's history. The plugin saves the event it submitted
 as `issuance.json` in her key directory. Decode it:
 
 ```sh
-dnsid testnet run alice --port 3001 -- node -p \
+dnsid local run alice --port 3001 -- node -p \
   'JSON.parse(Buffer.from(require(process.env.DNSID_CONFIG_DIR + "/issuance.json").entryBytes, "base64url"))'
 ```
 
@@ -293,7 +285,7 @@ Bob is registered but not online: section 1 left him `VERIFIED`, and no one
 submitted his ISSUANCE. Ask Alice to call him:
 
 ```sh
-dnsid testnet run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
+dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
   'Use the dnsid fetch tool to GET https://bob.dev.dnsid.test/. Quote the response body, or the denial reason, and stop.'
 ```
 
@@ -340,7 +332,7 @@ Now bring Bob online. The plugin did this for Alice at session start. Bob's
 program has no plugin, so the CLI does the same four steps:
 
 ```sh
-dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
 ```
 
 ```
@@ -360,7 +352,7 @@ next to `alice.ts`:
  * GET answers anyone; POST must carry a DNSid HTTP message signature, and the
  * reply names who sent it.
  *
- *   dnsid testnet run bob --port 3002 -- node bob.ts
+ *   dnsid local run bob --port 3002 -- node bob.ts
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';
@@ -425,7 +417,7 @@ another terminal:
 
 ```sh
 npm install @dnsid-ai/sdk @dnsid-ai/http-signatures
-dnsid testnet run bob --port 3002 -- node bob.ts
+dnsid local run bob --port 3002 -- node bob.ts
 ```
 
 ```
@@ -450,7 +442,7 @@ The `fetch` tool signs every request with Alice's operational key. Ask Alice to
 `POST` to Bob:
 
 ```sh
-dnsid testnet run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
+dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
   'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response body and stop.'
 ```
 
@@ -548,7 +540,7 @@ through the registry API.
 ## 8. Production checklist
 
 All plugin configuration is environment variables that start with `DNSID_`. The
-README lists every one. `testnet run` sets the DNSid Local ones. In production,
+README lists every one. `local run` sets the DNSid Local ones. In production,
 `DNSID_CONFIG_DIR` is the only variable an agent with a key file needs. A bad
 value fails the hook, and the hook denies.
 
@@ -556,7 +548,7 @@ Before the first production run:
 
 1. `dnsid init`, `dnsid verify`, `dnsid challenge` for your domain, as in
    section 1.
-2. Set `DNSID_CONFIG_DIR`. Nothing from `testnet run` applies.
+2. Set `DNSID_CONFIG_DIR`. Nothing from `local run` applies.
 3. Run the section 2 prompt. The DNSid line must say `is online (READY)`.
 4. From another agent with the plugin, run the section 4 `fetch` prompt against
    your domain. It must be allowed.

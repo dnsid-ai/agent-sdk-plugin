@@ -15,17 +15,15 @@ in your shell or in `.env` here (copy `.env.example`). DNSid Local with three
 agents, one of them never issued:
 
 ```sh
-dnsid testnet up
-dnsid testnet agent add alice --upstream http://localhost:3001
-dnsid testnet agent add bob   --upstream http://localhost:3002
-dnsid testnet agent add carol --upstream http://localhost:3004
-dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
+dnsid local up
+dnsid local agent add alice --upstream http://localhost:3001
+dnsid local agent add bob   --upstream http://localhost:3002
+dnsid local agent add carol --upstream http://localhost:3004
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
 ```
 
 > **TODO (for us, remove before publishing).** `package.json` installs the
-> plugin from this checkout (a `file:` path) until it is on npm. The published
-> registry image also needs dnsid PR #2371; the guide's section 1 has the local
-> build command.
+> plugin from this checkout (a `file:` path) until it is on npm.
 
 Then, from this directory:
 
@@ -39,14 +37,13 @@ API on 4002), and the page at <http://localhost:5173>. If the page shows a
 **First boot** card, one of the two is unreachable; it lists the setup commands
 and reconnects on its own. The servers reload on edit. To run them separately:
 `npm run alice`, `npm run bob`, `npm run web`, the first two under
-`dnsid testnet run <agent>`.
+`dnsid local run <agent>`.
 
 The chat is one Claude session: each prompt resumes the last, so Alice remembers
 earlier turns. She brings herself online when the session starts; the first
 prompt takes a few seconds longer while the plugin submits her ISSUANCE.
 
-To start over, `dnsid testnet reset --hard`, then the setup commands above
-again.
+To start over, `dnsid local reset --hard`, then the setup commands above again.
 
 ## What to click
 

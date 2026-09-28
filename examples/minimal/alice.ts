@@ -2,7 +2,7 @@
  * Alice: an Agent SDK program with the DNSid plugin loaded. The guide runs it
  * with a different prompt per section; the program never changes.
  *
- *   dnsid testnet run alice --port 3001 -- node alice.ts '<prompt>'
+ *   dnsid local run alice --port 3001 -- node alice.ts '<prompt>'
  */
 import { fileURLToPath } from 'node:url';
 import { query } from '@anthropic-ai/claude-agent-sdk';

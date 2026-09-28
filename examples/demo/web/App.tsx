@@ -467,7 +467,7 @@ function Reply({ text }: { text: string }) {
   );
 }
 
-// Shown while either server is unreachable: the testnet is not set up, or
+// Shown while either server is unreachable: DNSid Local is not set up, or
 // `npm run dev` is not running.
 function Setup({ alice, bob }: { alice: Identity | null; bob: Identity | null }) {
   const down =
@@ -481,14 +481,14 @@ function Setup({ alice, bob }: { alice: Identity | null; bob: Identity | null })
       <p>
         DNSid Local needs three agents, one of them never issued. Once, in a terminal:
       </p>
-      <pre className="body">{`dnsid testnet up
-dnsid testnet agent add alice --upstream http://localhost:3001
-dnsid testnet agent add bob   --upstream http://localhost:3002
-dnsid testnet agent add carol --upstream http://localhost:3004
-dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test`}</pre>
+      <pre className="body">{`dnsid local up
+dnsid local agent add alice --upstream http://localhost:3001
+dnsid local agent add bob   --upstream http://localhost:3002
+dnsid local agent add carol --upstream http://localhost:3004
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test`}</pre>
       <p>
         Then <code>npm run dev</code> here; this page reconnects on its own. To start
-        over: <code>dnsid testnet reset --hard</code>, then the commands above.
+        over: <code>dnsid local reset --hard</code>, then the commands above.
       </p>
     </div>
   );

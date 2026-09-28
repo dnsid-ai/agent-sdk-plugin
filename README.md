@@ -12,7 +12,7 @@ plugin. Load it and the agent:
 3. **Brings itself online.** At session start, the agent submits its own
    transparency-log ISSUANCE, authenticating with its own key.
 
-[`docs/guide.md`](docs/guide.md) walks through all three on a local testnet.
+[`docs/guide.md`](docs/guide.md) walks through all three on DNSid Local.
 [`examples/demo`](examples/demo/) is a chat with Alice where every step renders
 as a card.
 
@@ -102,7 +102,7 @@ bad value fails the hook, and the hook denies.
 | `DNSID_CACHE_FILE`                                                | `$TMPDIR/dnsid-verdicts.json`                     | The verdict cache, shared between hook runs.                                                                   |
 | `DNSID_DNS_SERVER`                                                | the system resolver                               | DNS server for `_dnsid` lookups and the `fetch` tool.                                                          |
 | `DNSID_CA_BUNDLE`                                                 | the system store                                  | Extra CA certificates for HTTPS to peers and the registry.                                                     |
-| `DNSID_PRIVATE_HOSTS`                                             | none                                              | Comma-separated hosts, or `.suffix` entries, that may resolve to private addresses. Testnets only.             |
+| `DNSID_PRIVATE_HOSTS`                                             | none                                              | Comma-separated hosts, or `.suffix` entries, that may resolve to private addresses. DNSid Local only.          |
 | `DNSID_LOG_POLICY_URL`                                            | DNSid's managed catalog                           | HTTPS URL of an operator policy: which transparency logs to trust.                                             |
 | `DNSID_LOG_POLICY_FILE`                                           | none                                              | The same policy from a file. Set one of the two, not both.                                                     |
 | `DNSID_LOG_CHECKPOINT_MAX_AGE`                                    | from the policy                                   | Seconds a log checkpoint may be old. Needs an operator policy.                                                 |

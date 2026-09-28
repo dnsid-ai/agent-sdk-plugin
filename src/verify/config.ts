@@ -71,7 +71,7 @@ const verifierEnv = z
     DNSID_LOG_POLICY_FILE: z.string().min(1).optional(),
     DNSID_LOG_CHECKPOINT_MAX_AGE: z.coerce.number().int().positive().optional(),
     // Hosts, or `.suffix` entries, allowed to resolve to loopback or private
-    // addresses. Testnets only. The same variable the SDK and the CLI read.
+    // addresses. DNSid Local only. The same variable the SDK and the CLI read.
     DNSID_PRIVATE_HOSTS: z
       .string()
       .transform((value) =>

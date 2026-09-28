@@ -4,7 +4,7 @@
  * verify hook's decision, the model's tool call, and the tool's result as
  * they happen. Nothing here is simulated.
  *
- *   dnsid testnet run alice --port 3001 -- node server/alice.ts
+ *   dnsid local run alice --port 3001 -- node server/alice.ts
  */
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';

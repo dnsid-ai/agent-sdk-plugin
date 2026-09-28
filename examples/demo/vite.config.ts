@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// Alice and Bob run under `dnsid testnet run`, each with its own identity, so
+// Alice and Bob run under `dnsid local run`, each with its own identity, so
 // they are two processes. The browser reaches both through this one origin.
 export default defineConfig({
   root: 'web',

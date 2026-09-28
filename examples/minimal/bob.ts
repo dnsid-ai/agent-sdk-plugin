@@ -3,7 +3,7 @@
  * GET answers anyone; POST must carry a DNSid HTTP message signature, and the
  * reply names who sent it.
  *
- *   dnsid testnet run bob --port 3002 -- node bob.ts
+ *   dnsid local run bob --port 3002 -- node bob.ts
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';

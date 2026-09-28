@@ -3,7 +3,7 @@
  * plus a second port that streams what he sees: the request as it arrived,
  * and who he verified it came from.
  *
- *   dnsid testnet run bob --port 3002 -- node server/bob.ts
+ *   dnsid local run bob --port 3002 -- node server/bob.ts
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';

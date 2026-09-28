@@ -50,13 +50,14 @@ answer honestly even if it undoes work.
 ## The demo
 
 `examples/demo` is standalone: `npm run dev` there starts Alice and Bob under
-`dnsid testnet run` and a Vite page. Alice's server turns the SDK's message
-stream into trace events. The SDK reports SessionStart hooks but not PreToolUse
-ones, so the verify hook's decision is read from its verdict cache, or inferred
-from a tool result that carries an HTTP status.
+`dnsid local run` and a Vite page. Alice's server turns the SDK's message stream
+into trace events. The SDK reports SessionStart hooks but not PreToolUse ones,
+so the verify hook's decision is read from its verdict cache, or inferred from a
+tool result that carries an HTTP status.
 
 ## DNSid Local
 
-The local testnet is `dnsid testnet` in the CLI; upstream is renaming it
-`dnsid local`. `DNSID_MODE=observe` logs every verdict and denies nothing, for
-debugging the verify hook.
+DNSid Local is `dnsid local` in the CLI; `dnsid testnet` is a temporary alias.
+The CLI still exports `DNSID_TESTNET_ZONE`, and the registry still writes
+`c2sp-tlog:testnet:` log references. `DNSID_MODE=observe` logs every verdict and
+denies nothing, for debugging the verify hook.
