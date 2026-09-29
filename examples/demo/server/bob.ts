@@ -11,7 +11,7 @@ import { VerificationError } from '@dnsid-ai/sdk';
 import { createVerifier } from '@dnsid-ai/agent-sdk-plugin/verify';
 import { HttpSignaturesProfile } from '@dnsid-ai/http-signatures';
 
-import { Trace, dnsidRecord, json, testnetEnv } from './trace.ts';
+import { Trace, dnsidRecord, json } from './trace.ts';
 
 const trace = new Trace('bob');
 
@@ -59,7 +59,6 @@ function handler(domain: string, bob: HttpSignaturesProfile) {
 
 const domain = process.env.DNSID_DOMAIN;
 if (!domain) throw new Error('DNSID_DOMAIN is not set');
-testnetEnv();
 
 const respond = handler(
   domain,

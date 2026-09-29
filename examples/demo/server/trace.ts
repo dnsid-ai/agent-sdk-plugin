@@ -83,12 +83,3 @@ export async function dnsidRecord(
     return null;
   }
 }
-
-// DNSid Local only: its registry has an HTTPS name only through the proxy,
-// and every agent resolves to loopback, which the plugin refuses by default.
-export function testnetEnv() {
-  const zone = process.env.DNSID_TESTNET_ZONE;
-  if (!zone) return;
-  process.env.DNSID_AGENT_AUTH_AUDIENCE ??= `https://registry.${zone}`;
-  process.env.DNSID_PRIVATE_HOSTS ??= `.${zone},dnsid.dnsid.test`;
-}

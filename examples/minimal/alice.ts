@@ -12,12 +12,11 @@ const pluginRoot = fileURLToPath(
   new URL('.', import.meta.resolve('@dnsid-ai/agent-sdk-plugin/package.json')),
 );
 
-// DNSid Local only: its registry has an HTTPS name only through the proxy,
-// and every agent resolves to loopback, which the plugin refuses by default.
+// DNSid Local only: the registry expects its HTTPS name as the token audience,
+// but `dnsid local run` sets DNSID_REGISTRY_URL to a local HTTP port.
 const zone = process.env.DNSID_TESTNET_ZONE;
 if (zone) {
   process.env.DNSID_AGENT_AUTH_AUDIENCE ??= `https://registry.${zone}`;
-  process.env.DNSID_PRIVATE_HOSTS ??= `.${zone},dnsid.dnsid.test`;
 }
 
 for await (const message of query({

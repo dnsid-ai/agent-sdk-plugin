@@ -43,12 +43,6 @@ if (import.meta.main) {
   const domain = process.env.DNSID_DOMAIN;
   if (!domain) throw new Error('DNSID_DOMAIN is not set');
 
-  // DNSid Local only: see alice.ts.
-  const zone = process.env.DNSID_TESTNET_ZONE;
-  if (zone) {
-    process.env.DNSID_PRIVATE_HOSTS ??= `.${zone},dnsid.dnsid.test`;
-  }
-
   const respond = handler(
     domain,
     new HttpSignaturesProfile({ domain, identityResolver: await createVerifier() }),

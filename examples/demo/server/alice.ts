@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { query, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { createNodeIdentityManagerFromEnvironment } from '@dnsid-ai/sdk/node';
 
-import { Trace, dnsidRecord, json, testnetEnv } from './trace.ts';
+import { Trace, dnsidRecord, json } from './trace.ts';
 
 const pluginRoot = fileURLToPath(
   new URL('.', import.meta.resolve('@dnsid-ai/agent-sdk-plugin/package.json')),
@@ -185,7 +185,11 @@ async function run(prompt: string) {
   }
 }
 
-testnetEnv();
+// DNSid Local only: the registry expects its HTTPS name as the token audience,
+// but `dnsid local run` sets DNSID_REGISTRY_URL to a local HTTP port.
+const zone = process.env.DNSID_TESTNET_ZONE;
+if (zone) process.env.DNSID_AGENT_AUTH_AUDIENCE ??= `https://registry.${zone}`;
+
 const idm = await createNodeIdentityManagerFromEnvironment();
 const domain = idm.config.identity!.domain;
 const kid = (await idm.getKeyProvider().signingKey()).kid;
