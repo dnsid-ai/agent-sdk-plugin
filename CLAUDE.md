@@ -25,10 +25,8 @@ the way the harness runs it.
 `docs/guide.md` is one program, `examples/minimal/alice.ts`, run with a
 different prompt per section. Every command and every output in it comes from a
 real run on DNSid Local; a claim not yet run carries a `**TODO (for us).**` note
-that says what to run. Running `alice.ts` needs model credentials the agent
-session does not have, so ask the user to run it. The guide shows
-`examples/minimal/alice.ts` and `examples/minimal/bob.ts` verbatim;
-`tests/examples/guide.test.ts` enforces it.
+that says what to run. The guide shows `examples/minimal/alice.ts` and
+`examples/minimal/bob.ts` verbatim; `tests/examples/guide.test.ts` enforces it.
 
 Writing rules: Simplified Technical English, zero hard violations from the
 `asd-ste100` lint. Command, then what it did. Introduce a thing before its short
@@ -59,7 +57,7 @@ an allow.
 
 ## DNSid Local
 
-DNSid Local is `dnsid local` in the CLI; `dnsid testnet` is a temporary alias.
-The CLI still exports `DNSID_TESTNET_ZONE`, and the registry still writes
-`c2sp-tlog:testnet:` log references. `DNSID_MODE=observe` logs every verdict and
-denies nothing, for debugging the verify hook.
+The CLI exports the zone as `DNSID_TESTNET_ZONE`. In a log reference,
+`c2sp-tlog:testnet:` is the spec's scope for non-production logs, not a name.
+`DNSID_MODE=observe` logs every verdict and denies nothing, for debugging the
+verify hook.
