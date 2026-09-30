@@ -50,10 +50,12 @@ answer honestly even if it undoes work.
 ## The demo
 
 `examples/demo` is standalone: `npm run dev` there starts Alice and Bob under
-`dnsid local run` and a Vite page. Alice's server turns the SDK's message stream
-into trace events. The SDK reports SessionStart hooks but not PreToolUse ones,
-so the verify hook's decision is read from its verdict cache, or inferred from a
-tool result that carries an HTTP status.
+`dnsid local run` and a Vite page. The chat is Alice's view: her server streams
+each turn's Agent SDK messages to the page, and Bob's reply says whom he
+verified. Bob and Carol are props that pass or fail her checks. The SDK reports
+SessionStart hooks but not PreToolUse ones, so the page reads the verify hook's
+decision from the tool result: the hook's reason on a denial, an HTTP status on
+an allow.
 
 ## DNSid Local
 

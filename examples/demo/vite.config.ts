@@ -1,8 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// Alice and Bob run under `dnsid local run`, each with its own identity, so
-// they are two processes. The browser reaches both through this one origin.
+// The page calls Alice's API through this dev server, so both share one origin.
 export default defineConfig({
   root: 'web',
   plugins: [react()],
@@ -11,10 +10,6 @@ export default defineConfig({
       '/alice': {
         target: 'http://127.0.0.1:4001',
         rewrite: (p) => p.replace(/^\/alice/, ''),
-      },
-      '/bob': {
-        target: 'http://127.0.0.1:4002',
-        rewrite: (p) => p.replace(/^\/bob/, ''),
       },
     },
   },
