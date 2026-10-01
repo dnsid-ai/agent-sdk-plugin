@@ -32,8 +32,7 @@ Writing rules: Simplified Technical English, zero hard violations from the
 `asd-ste100` lint. Command, then what it did. Introduce a thing before its short
 name. "Verify" is the one verb for verifying identities. No rhetorical
 questions, no idioms, no threat framing. Bold a DNSid term only on first
-definition. Where production differs, one **In production** note at the end of
-the section.
+definition. The guide covers DNSid Local only.
 
 ## Process
 

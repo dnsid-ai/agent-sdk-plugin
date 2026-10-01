@@ -10,7 +10,7 @@ The guide follows one small program, `alice.ts`, an agent named Alice, written
 in section 2. Each section runs it with a different prompt.
 
 Everything runs on DNSid Local, a complete DNSid system in Docker on your
-machine. Where production differs, a short **In production** note says how.
+machine.
 
 ## Prerequisites
 
@@ -77,25 +77,6 @@ Next: run `dnsid log issue --domain alice.test` to countersign the transparency-
 ```
 
 The "Next" line is what section 3 automates.
-
-> **In production.** The same steps against the hosted registry:
->
-> ```sh
-> dnsid auth login
-> dnsid init --env production --domain agent.example.com
-> dnsid verify
-> dnsid challenge
-> export DNSID_CONFIG_DIR=~/.dnsid/agent.example.com
-> ```
->
-> `init` writes the same three files. `verify` and `challenge` prove you control
-> the domain and the key, and the registry publishes real DNS records. The
-> accountable entity is your organization. There is no `local run`.
-> `DNSID_CONFIG_DIR` is the only variable to set.
->
-> **TODO (for us).** Not run. The commands come from `dnsid/internal/cli` and
-> `dnsid/WALKTHROUGH.md`, which only exercised `--env sandbox`. Run the
-> own-domain path once before publishing.
 
 ## 2. Add the plugin
 
@@ -278,14 +259,6 @@ DNSid: this agent is alice.test. alice.test is online (READY).
 The plugin found her `READY` and only reported. Without the plugin, the CLI does
 the same four steps: `dnsid log issue --domain alice.test`.
 
-> **In production.** The same code runs. `DNSID_CONFIG_DIR` points at the
-> directory `dnsid init` wrote. The plugin authenticates to the registry at
-> `https://api.dnsid.ai` unless `DNSID_AGENT_AUTH_AUDIENCE` names another
-> registry. One registry setting, `TLOG_REQUIRE_ISSUANCE`, decides whether an
-> agent waits at `VERIFIED` until its ISSUANCE is accepted. DNSid Local sets it
-> on. If your registry sets it off, `dnsid verify` alone reaches `READY`, and
-> the plugin still submits the ISSUANCE.
-
 ## 4. Verify a peer
 
 Before every call to another agent, the plugin verifies that agent's identity.
@@ -437,9 +410,6 @@ hello from bob.test
 Bob answered because his identity verified. He does not yet know who asked. The
 `fetch` tool already told him. Section 5 shows how.
 
-> **In production.** Nothing changes. `DNSID_ON_UNVERIFIABLE` and
-> `DNSID_MCP_SERVER_DOMAINS` are the only settings this feature reads.
-
 ## 5. Sign a request
 
 The `fetch` tool signs every request with Alice's operational key. Ask Alice to
@@ -496,10 +466,7 @@ curl -s -X POST -H 'content-type: application/json' -d '{"hello":"bob"}' http://
 DNSid: SignatureInvalid: missing Signature or Signature-Input headers
 ```
 
-Alice can prove who she is because she holds `private.jwk`. Section 7 moves that
-key out of a file.
-
-> **In production.** Nothing changes. The tool reads no setting of its own.
+Alice can prove who she is because she holds `private.jwk`.
 
 ## 6. What you built
 
@@ -514,47 +481,4 @@ Three parties, two keys, one record.
   record, both keys, her status, and her stream, and verified the signature.
 
 The plugin did the first three for Alice at session start, verified Bob before
-she called him, and signed what she sent. The two sections left are for
-production: where the operational key lives, and what to set.
-
-## 7. Keys
-
-Sections 3 and 5 signed with `private.jwk`, the operational key on disk. The
-plugin can sign with a key in AWS KMS instead. Set one variable:
-
-```sh
-export DNSID_AWS_KMS_KEY_ID=arn:aws:kms:us-east-1:123456789012:key/...
-```
-
-The plugin then never reads `private.jwk`. Every signature, the ISSUANCE in
-section 3 and the request in section 5, is an AWS `Sign` call, and the key never
-leaves KMS. AWS credentials come from the standard AWS environment. The key must
-be an Ed25519 key, or an ECDSA P-256 key with
-`DNSID_AWS_KMS_ALGORITHM=ECDSA_SHA_256`.
-
-The registry must hold that key's public half, so it is the key `ku` points at.
-`dnsid init` generates a local key and registers that one. Register a KMS key
-through the registry API.
-
-> **TODO (for us).** Not run against KMS. `dnsid init` has no option to register
-> an existing public key, and the test for `src/shared/key-provider.ts` uses a
-> fake KMS only. Run once with a real key before publishing, and write the
-> registration step from that run.
-
-## 8. Production checklist
-
-All plugin configuration is environment variables that start with `DNSID_`. The
-README lists every one. `local run` sets the DNSid Local ones. In production,
-`DNSID_CONFIG_DIR` is the only variable an agent with a key file needs. A bad
-value fails the hook, and the hook denies.
-
-Before the first production run:
-
-1. `dnsid init`, `dnsid verify`, `dnsid challenge` for your domain, as in
-   section 1.
-2. Set `DNSID_CONFIG_DIR`. Nothing from `local run` applies.
-3. Run the section 2 prompt. The DNSid line must say `is online (READY)`.
-4. From another agent with the plugin, run the section 4 `fetch` prompt against
-   your domain. It must be allowed.
-5. If your agent calls MCP servers that are agents, set
-   `DNSID_MCP_SERVER_DOMAINS`.
+she called him, and signed what she sent.
