@@ -24,6 +24,14 @@ for await (const message of query({
   options: {
     plugins: [{ type: 'local', path: pluginRoot }],
     allowedTools: ['mcp__plugin_dnsid_dnsid__fetch'],
+    // Keep your Claude Code settings, memory, and claude.ai connectors out of
+    // Alice's session.
+    settingSources: [],
+    env: {
+      ...process.env,
+      CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
+      ENABLE_CLAUDEAI_MCP_SERVERS: 'false',
+    },
     maxTurns: 6,
   },
 })) {

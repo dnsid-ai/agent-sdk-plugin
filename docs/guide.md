@@ -16,9 +16,10 @@ machine. Where production differs, a short **In production** note says how.
 
 - Docker
 - Node 22.18 or later
-- Model credentials for the Agent SDK: `ANTHROPIC_API_KEY` or
+- Optional: model credentials for the Agent SDK, `ANTHROPIC_API_KEY` or
   `CLAUDE_CODE_OAUTH_TOKEN`, in your environment or in a `.env` file in the
-  directory section 2 makes.
+  directory section 2 makes. Without them, the Agent SDK uses your Claude Code
+  login.
 - The `dnsid` command-line tool. Build it from the `dnsid` repo with
   `make build` and add `bin/dnsid` to your PATH.
 
@@ -34,16 +35,10 @@ Start it:
 dnsid local up
 ```
 
-> **TODO (for us, remove before publishing).** `local up` pulls
-> `ghcr.io/identity-digital/dnsid-local-registry:main`. The fix for the status
-> document, dnsid PR #2371, is merged. On the next run, make sure that a
-> verifier can verify a local identity with that image, then remove this note.
-
 A DNSid identity belongs to an agent, but an organization answers for it: the
 **accountable entity**, which owns the agent's domain. The **registry** is the
-DNSid service that manages identities for that organization. `local up` creates
-one organization, with the id `dnsid.test`, and every agent you add belongs to
-it.
+DNSid service that manages identities for that organization. On DNSid Local,
+each agent is its own accountable entity. Alice's id is `alice.test`.
 
 Register two agents, Alice and Bob:
 
@@ -53,8 +48,8 @@ dnsid local agent add bob   --upstream http://localhost:3002
 ```
 
 `agent add alice` generated her keypair, the **operational key**, in
-`~/.dnsid-local/agents/alice.dev.dnsid.test/`, and registered the public key.
-The registry lists her as `VERIFIED`: accepted, not yet published.
+`~/.dnsid-local/agents/alice.test/`, and registered the public key. The registry
+lists her as `VERIFIED`: accepted, not yet published.
 
 Every command from here on runs as Alice. `dnsid local run alice -- <cmd>` sets
 her environment: her key directory, and how to reach DNSid Local.
@@ -62,23 +57,23 @@ her environment: her key directory, and how to reach DNSid Local.
 Ask the registry for Alice's status:
 
 ```sh
-dnsid local run alice --port 3001 -- dnsid status --domain alice.dev.dnsid.test
+dnsid local run alice --port 3001 -- dnsid status --domain alice.test
 ```
 
 ```
 Agent:       ag-...
-Domain:      alice.dev.dnsid.test
+Domain:      alice.test
 Status:      VERIFIED
 Environment: production
-Created:     2026-09-15 04:52:51 +0000 UTC
-Updated:     2026-09-15 04:52:51 +0000 UTC
+Created:     2026-10-01 02:41:58.26682155 +0000 UTC
+Updated:     2026-10-01 02:41:58.267820007 +0000 UTC
 Managed:     dnsid
 
 Transparency Log:
-  Log reference (lr=): c2sp-tlog:testnet:https://registry.dev.dnsid.test#ag-...
-  Stream explorer:     http://127.0.0.1:7755/streams/alice.dev.dnsid.test
+  Log reference (lr=): c2sp-tlog:testnet:https://registry.test#ag-...
+  Stream explorer:     http://127.0.0.1:7755/streams/alice.test
 
-Next: run `dnsid log issue --domain alice.dev.dnsid.test` to countersign the transparency-log ISSUANCE.
+Next: run `dnsid log issue --domain alice.test` to countersign the transparency-log ISSUANCE.
 ```
 
 The "Next" line is what section 3 automates.
@@ -150,6 +145,14 @@ for await (const message of query({
   options: {
     plugins: [{ type: 'local', path: pluginRoot }],
     allowedTools: ['mcp__plugin_dnsid_dnsid__fetch'],
+    // Keep your Claude Code settings, memory, and claude.ai connectors out of
+    // Alice's session.
+    settingSources: [],
+    env: {
+      ...process.env,
+      CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
+      ENABLE_CLAUDEAI_MCP_SERVERS: 'false',
+    },
     maxTurns: 6,
   },
 })) {
@@ -165,8 +168,9 @@ for await (const message of query({
 ```
 
 A plain `query()` program with the plugin as one entry in `plugins:`. The one
-tool it allows is the plugin's own, `fetch`. Every command from here on runs in
-this directory.
+tool it allows is the plugin's own, `fetch`. `settingSources` and `env` keep
+your own Claude Code settings, memory, and claude.ai connectors out of Alice's
+session. Every command from here on runs in this directory.
 
 Run it as Alice. The prompt is the first argument:
 
@@ -178,7 +182,7 @@ dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
 Alice quotes:
 
 ```
-DNSid: this agent is alice.dev.dnsid.test. alice.dev.dnsid.test: ISSUANCE accepted into the transparency log (c2sp-tlog:testnet:https://registry.dev.dnsid.test#ag-...); the registry is publishing its DNS record.
+DNSid: this agent is alice.test. alice.test: ISSUANCE accepted into the transparency log (c2sp-tlog:testnet:https://registry.test#ag-...); the registry is publishing its DNS record.
 ```
 
 That line came from the plugin. Section 3 explains what it means.
@@ -189,11 +193,11 @@ At session start, the plugin made Alice live. Live means her identity record is
 in DNS. Look it up:
 
 ```sh
-dig @127.0.0.1 -p 7753 _dnsid.alice.dev.dnsid.test TXT +short
+dig @127.0.0.1 -p 7753 _dnsid.alice.test TXT +short
 ```
 
 ```
-"v=dnsid-draft-01;ek=https://dnsid.dnsid.test/.well-known/dnsid-ek.json;gi=dnsid.test;ku=https://alice.dev.dnsid.test/.well-known/jwks.json;lr=c2sp-tlog:testnet:https://registry.dev.dnsid.test#ag-...;sg=...;su=https://registry.dev.dnsid.test/v1/status/alice.dev.dnsid.test"
+"v=dnsid-draft-01;ek=https://dnsid.alice.test/.well-known/dnsid-ek.json;gi=alice.test;ku=https://alice.test/.well-known/jwks.json;lr=c2sp-tlog:testnet:https://registry.test#ag-...;sg=...;su=https://registry.test/v1/status/alice.test"
 ```
 
 One record, five fields a peer uses.
@@ -218,18 +222,23 @@ dnsid local run alice --port 3001 -- node -p \
 
 ```
 {
-  type: 'ISSUANCE',
-  fqdn: 'alice.dev.dnsid.test',
-  gi: 'dnsid.test',
-  ek: { kty: 'OKP', crv: 'Ed25519', kid: '4od3n...', x: 'Fg8O...' },
-  ku: { kty: 'OKP', crv: 'Ed25519', kid: 'Scjox...', x: 'hf07...' },
-  lr: 'c2sp-tlog:testnet:https://registry.dev.dnsid.test#ag-...',
+  ek: { alg: 'EdDSA', crv: 'Ed25519', kid: '2VUql...', kty: 'OKP', use: 'sig', x: 'vDUul...' },
+  fqdn: 'alice.test',
+  gi: 'alice.test',
+  kind: 'dnsid.lifecycle',
+  ku: { alg: 'EdDSA', crv: 'Ed25519', kid: 'hdGpN...', kty: 'OKP', use: 'sig', x: '3-5Ua...' },
+  log_origin: 'registry.test',
+  lr: 'c2sp-tlog:testnet:https://registry.test#ag-...',
+  method: 'c2sp-tlog',
   seq: 0,
-  ts: 1789448219,
   sigs: {
-    ae: { kid: '4od3n...', sig: 'uel1h...' },
-    op: { kid: 'Scjox...', sig: 'H2p3W...' }
-  }
+    ae: { kid: '2VUql...', sig: 'Pd4JF...' },
+    op: { kid: 'hdGpN...', sig: 'nzgGQ...' }
+  },
+  stream_id: 'ag-...',
+  ts: 1790822534,
+  type: 'ISSUANCE',
+  v: 1
 }
 ```
 
@@ -263,11 +272,11 @@ Alice's key, and submitted it to the log, in four steps.
 Run the section 2 command again. Alice quotes:
 
 ```
-DNSid: this agent is alice.dev.dnsid.test. alice.dev.dnsid.test is online (READY).
+DNSid: this agent is alice.test. alice.test is online (READY).
 ```
 
 The plugin found her `READY` and only reported. Without the plugin, the CLI does
-the same four steps: `dnsid log issue --domain alice.dev.dnsid.test`.
+the same four steps: `dnsid log issue --domain alice.test`.
 
 > **In production.** The same code runs. `DNSID_CONFIG_DIR` points at the
 > directory `dnsid init` wrote. The plugin authenticates to the registry at
@@ -285,18 +294,14 @@ submitted his ISSUANCE. Ask Alice to call him:
 
 ```sh
 dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
-  'Use the dnsid fetch tool to GET https://bob.dev.dnsid.test/. Quote the response body, or the denial reason, and stop.'
+  'Use the dnsid fetch tool to GET https://bob.test/. Quote the response body, or the denial reason, and stop.'
 ```
 
 Alice is refused and quotes:
 
 ```
-DNSid: bob.dev.dnsid.test: DNSResolution: no _dnsid TXT record found for bob.dev.dnsid.test
+DNSid: bob.test: DNSResolution: no _dnsid TXT record found for bob.test
 ```
-
-> **TODO (for us).** This output is from 2026-09-15 through `WebFetch`, which
-> the same hook guards. Run it once through the `fetch` tool on a fresh DNSid
-> Local before publishing.
 
 A refusal has the shape `DNSid: <host>: <code>: <detail>`. The host is the
 hostname of the URL. The path, the port, and the IP address play no part. The
@@ -309,10 +314,15 @@ code names the step that failed, of four:
 4. Verify the agent's stream in the transparency log.
 
 Only an agent that passes all four, with state `ACTIVE`, may be called. The
-plugin caches a success until the verdict expires, which the SDK sets from the
-DNS TTL and the certificate expiry, and a failure for 30 seconds. A refusal is
-the peer's to fix. The code tells its operator where: the record, a key, the
-status, or the log.
+plugin keeps a failure for 30 seconds. It keeps a success until the verdict
+expires, which the SDK sets from the DNS TTL and the certificate expiry. A
+refusal is the peer's to fix. The code tells its operator where: the record, a
+key, the status, or the log.
+
+> **TODO (for us).** The SDK's resolver reports a TTL of 0 for TXT records
+> (`dnsid-ts`, `packages/transport/src/index.ts`), so a success expires at once
+> and the plugin verifies again on every call. Remove this note when the SDK
+> reports the real TTL.
 
 One more outcome exists: the plugin could not verify at all, for example the
 record names a transparency log the plugin does not trust. The reason then
@@ -331,19 +341,19 @@ Now bring Bob online. The plugin did this for Alice at session start. Bob's
 program has no plugin, so the CLI does the same four steps:
 
 ```sh
-dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test
 ```
 
 ```
-Transparency-log ISSUANCE accepted for bob.dev.dnsid.test.
-Log reference: c2sp-tlog:testnet:https://registry.dev.dnsid.test#ag-...@4
-Stream explorer: http://127.0.0.1:7755/streams/bob.dev.dnsid.test
-Run `dnsid status --domain bob.dev.dnsid.test` to confirm the agent reaches READY.
+Transparency-log ISSUANCE accepted for bob.test.
+Log reference: c2sp-tlog:testnet:https://registry.test#ag-...@1
+Stream explorer: http://127.0.0.1:7755/streams/bob.test
+Run `dnsid status --domain bob.test` to confirm the agent reaches READY.
 ```
 
-DNSid Local forwards HTTPS for `bob.dev.dnsid.test` to the `--upstream` from
-section 1, port 3002. Bob is a plain HTTP server there. Save this as `bob.ts`,
-next to `alice.ts`:
+DNSid Local forwards HTTPS for `bob.test` to the `--upstream` from section 1,
+port 3002. Bob is a plain HTTP server there. Save this as `bob.ts`, next to
+`alice.ts`:
 
 ```ts
 /**
@@ -414,13 +424,14 @@ dnsid local run bob --port 3002 -- node bob.ts
 ```
 
 ```
-bob.dev.dnsid.test listening on 3002
+bob.test listening on 3002
 ```
 
-Run the first prompt of this section again. Alice quotes Bob's reply:
+The plugin keeps the refusal from the first run for 30 seconds. After that, run
+the first prompt of this section again. Alice quotes Bob's reply:
 
 ```
-hello from bob.dev.dnsid.test
+hello from bob.test
 ```
 
 Bob answered because his identity verified. He does not yet know who asked. The
@@ -436,19 +447,19 @@ The `fetch` tool signs every request with Alice's operational key. Ask Alice to
 
 ```sh
 dnsid local run alice --port 3001 -- node --env-file-if-exists=.env alice.ts \
-  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response body and stop.'
+  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.test/ as application/json. Quote the response body and stop.'
 ```
 
 Alice quotes Bob's reply:
 
 ```json
-{ "from": "alice.dev.dnsid.test", "received": "{\"hello\":\"bob\"}" }
+{ "from": "alice.test", "received": "{\"hello\":\"bob\"}" }
 ```
 
 Bob's terminal prints:
 
 ```
-verified signed POST / from alice.dev.dnsid.test
+verified signed POST / from alice.test
 ```
 
 Bob read the sender from the request. The tool added three headers before it
@@ -456,14 +467,14 @@ sent it:
 
 ```
 content-digest: sha-256=:5lvq...:
-signature-input: sig1=("@method" "@authority" "@target-uri" "content-digest" "content-type");keyid="alice.dev.dnsid.test#Scjox...";alg="ed25519";created=1789527598;nonce="uUwm..."
-signature: sig1=:2RIu...:
+signature-input: sig1=("@method" "@authority" "@target-uri" "content-digest" "content-type");keyid="alice.test#hdGpN...";alg="ed25519";created=1790822689;nonce="Jz-GO..."
+signature: sig1=:ypHxY...:
 ```
 
 This is an HTTP message signature (RFC 9421). `signature-input` lists what
 `signature` covers: the method, the host, the full URL, a SHA-256 digest of the
 body, and every header Alice gave the tool. `keyid` names the signer and her
-key. `Scjox...` is the `kid` of the `ku` key in her ISSUANCE in section 3.
+key. `hdGpN...` is the `kid` of the `ku` key in her ISSUANCE in section 3.
 `created` lets Bob reject an old request.
 
 Bob verifies with one call, in `bob.ts`:
@@ -474,8 +485,8 @@ const sender = await bob.verifySignedHttpRequest(request);
 
 The call reads the domain from `keyid`, verifies Alice's identity in the four
 steps of section 4, fetches her public key from her `ku` URL, and verifies the
-signature with it. `sender.domain` is `alice.dev.dnsid.test`. A `POST` without a
-signature does not reach that line:
+signature with it. `sender.domain` is `alice.test`. A `POST` without a signature
+does not reach that line:
 
 ```sh
 curl -s -X POST -H 'content-type: application/json' -d '{"hello":"bob"}' http://127.0.0.1:3002/
