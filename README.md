@@ -33,8 +33,11 @@ query({
 ```
 
 The agent's identity is `config.json` and `private.jwk` in `DNSID_CONFIG_DIR`
-(default `~/.dnsid`), as written by the `dnsid` CLI. Set `DNSID_AWS_KMS_KEY_ID`
-to sign with an AWS KMS key instead of `private.jwk`.
+(default `~/.dnsid`), as written by the `dnsid` CLI
+([installation](https://docs.dnsid.ai/cli-installation)). The plugin is built on
+the DNSid TypeScript SDK, the `@dnsid-ai/*` packages on npm
+([SDK overview](https://docs.dnsid.ai/sdk-overview.html)). Set
+`DNSID_AWS_KMS_KEY_ID` to sign with an AWS KMS key instead of `private.jwk`.
 
 ## 1. Verify peers (`src/verify/`)
 

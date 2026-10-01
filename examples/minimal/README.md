@@ -8,7 +8,7 @@ at a time; [`../demo`](../demo/) is the same pair with a browser in front.
 | -------------- | ------------------------------------------------------------------------------- |
 | `alice.ts`     | An Agent SDK `query()` program with the plugin loaded. The prompt is `argv[2]`. |
 | `bob.ts`       | A plain HTTP server behind the proxy. Answers `GET`; verifies signed `POST`.    |
-| `.env.example` | Model credentials. Copy to `.env`.                                              |
+| `.env.example` | Optional model credentials. Copy to `.env`.                                     |
 
 The guide shows `alice.ts` and `bob.ts` in full; `tests/examples/guide.test.ts`
 keeps them identical. Inside this repo they import the plugin by package name,
@@ -16,14 +16,14 @@ which Node resolves to the repo itself.
 
 ## Quickstart
 
-Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI on your PATH.
+Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI
+([installation](https://docs.dnsid.ai/cli-installation)).
 
 ```sh
-# 1. Model credentials. Or export ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN.
+# 1. Optional: model credentials. Without them, the Agent SDK uses your Claude Code login.
 cp examples/minimal/.env.example examples/minimal/.env && $EDITOR examples/minimal/.env
 
-# 2. DNSid Local, with two agents. Until dnsid PR #2371 is in the published
-#    image, build it from that branch; the guide's section 1 has the command.
+# 2. DNSid Local, with two agents.
 dnsid local up
 dnsid local agent add alice --upstream http://localhost:3001
 dnsid local agent add bob   --upstream http://localhost:3002

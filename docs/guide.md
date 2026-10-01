@@ -20,8 +20,10 @@ machine.
   `CLAUDE_CODE_OAUTH_TOKEN`, in your environment or in a `.env` file in the
   directory section 2 makes. Without them, the Agent SDK uses your Claude Code
   login.
-- The `dnsid` command-line tool. Build it from the `dnsid` repo with
-  `make build` and add `bin/dnsid` to your PATH.
+- The `dnsid` command-line tool. Install it as
+  [the CLI installation page](https://docs.dnsid.ai/cli-installation) says, for
+  example with `brew install dnsid-ai/tap/dnsid`. Then `dnsid --version` shows
+  the version.
 
 ## 1. Start DNSid Local and register an agent
 
@@ -388,7 +390,8 @@ if (import.meta.main) {
 ```
 
 It answers `GET` to anyone, and verifies the signature on every `POST`. Section
-5 uses the second half. Install the two DNSid packages it uses, and start it in
+5 uses the second half. Install the two DNSid SDK packages it uses, from npm
+([SDK overview](https://docs.dnsid.ai/sdk-overview.html)), and start it in
 another terminal:
 
 ```sh

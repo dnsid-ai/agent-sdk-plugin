@@ -1,11 +1,11 @@
 # @dnsid-ai/agent-sdk-plugin
 
-A standard Agent SDK plugin, all TypeScript on `dnsid-ts`, run by Node. Rules
-that hold: enforcement is a hook, signing and on-request verification are tools,
-onboarding is a `SessionStart` hook, and the model can decline none of them.
-Only `src/sign/`, `src/online/`, and `src/mcp.ts` touch key material;
-`src/verify/` holds no identity. "Cannot verify" never maps to allow.
-Configuration is environment variables only.
+A standard Agent SDK plugin, all TypeScript, run by Node. Rules that hold:
+enforcement is a hook, signing and on-request verification are tools, onboarding
+is a `SessionStart` hook, and the model can decline none of them. Only
+`src/sign/`, `src/online/`, and `src/mcp.ts` touch key material; `src/verify/`
+holds no identity. "Cannot verify" never maps to allow. Configuration is
+environment variables only.
 
 ## Setup and checks
 

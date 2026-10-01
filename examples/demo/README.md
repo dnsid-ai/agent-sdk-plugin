@@ -4,15 +4,16 @@ Alice is an Agent SDK program with the DNSid plugin loaded. Bob is the peer she
 calls. You talk to Alice in a chat; each step she takes renders as a card in the
 conversation: her verdict on a peer, the signed request as Bob receives it,
 Bob's verdict on her, and his answer. Then she replies in a sentence. Every card
-is real: Alice's side is the SDK's own message stream, Bob's side is his server.
-Nothing is simulated.
+comes from Alice's Agent SDK messages, Bob's replies to her included. Nothing is
+simulated.
 
 ## Run it
 
-Prerequisites: Docker, Node 22.18 or later, the `dnsid` CLI, and model
-credentials for the Agent SDK: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`,
-in your shell or in `.env` here (copy `.env.example`). DNSid Local with three
-agents, one of them never issued:
+Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI
+([installation](https://docs.dnsid.ai/cli-installation)). Model credentials are
+optional: without `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` in your shell
+or in `.env` here (copy `.env.example`), the Agent SDK uses your Claude Code
+login. DNSid Local with three agents, one of them never issued:
 
 ```sh
 dnsid local up
