@@ -90,15 +90,6 @@ npm init -y && npm pkg set type=module
 npm install @anthropic-ai/claude-agent-sdk @dnsid-ai/agent-sdk-plugin
 ```
 
-> **TODO (for us, remove before publishing).** The plugin is not on npm. Until
-> then, install it from a sibling checkout:
->
-> ```sh
-> git clone git@github.com:dnsid-ai/agent-sdk-plugin.git && (cd agent-sdk-plugin && npm install)
-> mkdir alice && cd alice && npm init -y && npm pkg set type=module
-> npm install @anthropic-ai/claude-agent-sdk ../agent-sdk-plugin
-> ```
-
 Save this as `alice.ts`:
 
 ```ts
@@ -187,9 +178,9 @@ One record, five fields a peer uses.
 
 - `ku`: where Alice's public key is.
 - `su`: where her current status is. Right now it says `ACTIVE`.
-- `ek`: where the accountable entity's public key is. That key, the **entity
-  key**, signed this record, and the signature is `sg`. The registry holds the
-  entity key.
+- `ek`: where the accountable entity's public key is. That key is the **entity
+  key**. The registry holds it.
+- `sg`: the entity key's signature over this record.
 - `lr`: where her history is. It names a **transparency log**, an append-only
   public logbook of identity events, and her stream in it.
 
@@ -233,10 +224,8 @@ would be visible there.
 
 The log follows the public C2SP transparency-log specs (`tlog-checkpoint`,
 `tlog-tiles`, `tlog-witness`, at <https://c2sp.org>). The entry format is
-DNSid's own, defined in the DNSid specification's `c2sp-tlog` log-method
-extension.
-
-> **TODO (for us).** Link the DNSid spec once its public location is known.
+DNSid's own, defined in the `c2sp-tlog` log-method extension of the
+[DNSid specification](https://docs.dnsid.ai/the-standard.html).
 
 The registry holds one key and Alice holds the other, so neither can produce the
 ISSUANCE alone. The plugin got the event signed by the registry, signed it with
@@ -289,15 +278,8 @@ code names the step that failed, of four:
 4. Verify the agent's stream in the transparency log.
 
 Only an agent that passes all four, with state `ACTIVE`, may be called. The
-plugin keeps a failure for 30 seconds. It keeps a success until the verdict
-expires, which the SDK sets from the DNS TTL and the certificate expiry. A
-refusal is the peer's to fix. The code tells its operator where: the record, a
-key, the status, or the log.
-
-> **TODO (for us).** The SDK's resolver reports a TTL of 0 for TXT records
-> (`dnsid-ts`, `packages/transport/src/index.ts`), so a success expires at once
-> and the plugin verifies again on every call. Remove this note when the SDK
-> reports the real TTL.
+plugin keeps a failure for 30 seconds. A refusal is the peer's to fix. The code
+tells its operator where: the record, a key, the status, or the log.
 
 One more outcome exists: the plugin could not verify at all, for example the
 record names a transparency log the plugin does not trust. The reason then
@@ -469,8 +451,6 @@ curl -s -X POST -H 'content-type: application/json' -d '{"hello":"bob"}' http://
 DNSid: SignatureInvalid: missing Signature or Signature-Input headers
 ```
 
-Alice can prove who she is because she holds `private.jwk`.
-
 ## 6. What you built
 
 Three parties, two keys, one record.
@@ -483,5 +463,5 @@ Three parties, two keys, one record.
 - **Bob** holds nothing of Alice's. From `keyid` in one request he found her
   record, both keys, her status, and her stream, and verified the signature.
 
-The plugin did the first three for Alice at session start, verified Bob before
-she called him, and signed what she sent.
+The plugin brought Alice online at session start, verified Bob before she called
+him, and signed what she sent.

@@ -23,9 +23,6 @@ dnsid local agent add carol --upstream http://localhost:3004
 dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test
 ```
 
-> **TODO (for us, remove before publishing).** `package.json` installs the
-> plugin from this checkout (a `file:` path) until it is on npm.
-
 Then, from this directory:
 
 ```sh
