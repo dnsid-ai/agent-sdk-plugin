@@ -1,4 +1,5 @@
 node_modules/
+dist/
 *.log
 
 # Local secrets.
@@ -8,7 +9,3 @@ node_modules/
 /.agents/
 /.claude/
 /skills-lock.json
-
-# `npm run link-sdk` installs with `--no-package-lock`, so a committed
-# lockfile cannot describe a working tree. Track it when the SDK publishes.
-/package-lock.json

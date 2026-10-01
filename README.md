@@ -12,18 +12,14 @@ plugin. Load it and the agent:
 3. **Brings itself online.** At session start, the agent submits its own
    transparency-log ISSUANCE, authenticating with its own key.
 
-[`docs/guide.md`](docs/guide.md) walks through all three on a local testnet.
+[`docs/guide.md`](docs/guide.md) walks through all three on DNSid Local.
 [`examples/demo`](examples/demo/) is a chat with Alice where every step renders
 as a card.
 
-## Setup
-
-Not on npm yet. It needs a built sibling checkout of `dnsid-ts`:
+## Install
 
 ```sh
-cd ../dnsid-ts && npm ci && npm run build && cd -
-npm run link-sdk
-npm test
+npm install @dnsid-ai/agent-sdk-plugin
 ```
 
 ## Use
@@ -31,13 +27,18 @@ npm test
 ```ts
 query({
   prompt,
-  options: { plugins: [{ type: 'local', path: '/path/to/agent-sdk-plugin' }] },
+  options: {
+    plugins: [{ type: 'local', path: 'node_modules/@dnsid-ai/agent-sdk-plugin' }],
+  },
 });
 ```
 
 The agent's identity is `config.json` and `private.jwk` in `DNSID_CONFIG_DIR`
-(default `~/.dnsid`), as written by the `dnsid` CLI. Set `DNSID_AWS_KMS_KEY_ID`
-to sign with an AWS KMS key instead of `private.jwk`.
+(default `~/.dnsid`), as written by the `dnsid` CLI
+([installation](https://docs.dnsid.ai/cli-installation)). The plugin is built on
+the DNSid TypeScript SDK, the `@dnsid-ai/*` packages on npm
+([SDK overview](https://docs.dnsid.ai/sdk-overview.html)). Set
+`DNSID_AWS_KMS_KEY_ID` to sign with an AWS KMS key instead of `private.jwk`.
 
 ## 1. Verify peers (`src/verify/`)
 
@@ -95,24 +96,24 @@ context for the model.
 Everything the plugin reads is an environment variable starting with `DNSID_`. A
 bad value fails the hook, and the hook denies.
 
-| Variable                                                          | Default                                           | Meaning                                                                                                        |
-| ----------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `DNSID_CONFIG_DIR`                                                | `~/.dnsid`                                        | The agent's identity: `config.json` and `private.jwk`.                                                         |
-| `DNSID_AGENT_AUTH_AUDIENCE`                                       | `DNSID_REGISTRY_URL`, then `https://api.dnsid.ai` | The registry the bring-online hook authenticates to.                                                           |
-| `DNSID_MODE`                                                      | `enforce`                                         | `observe` logs each verdict to stderr and denies nothing.                                                      |
-| `DNSID_ON_UNVERIFIABLE`                                           | `deny`                                            | `ask` turns a `Cannot verify` result into a permission prompt.                                                 |
-| `DNSID_MCP_SERVER_DOMAINS`                                        | `{}`                                              | JSON, MCP server name to agent domain. Every tool of a mapped server is verified against that domain.          |
-| `DNSID_CACHE_FILE`                                                | `$TMPDIR/dnsid-verdicts.json`                     | The verdict cache, shared between hook runs.                                                                   |
-| `DNSID_DNS_SERVER`                                                | the system resolver                               | DNS server for `_dnsid` lookups and the `fetch` tool.                                                          |
-| `DNSID_CA_BUNDLE`                                                 | the system store                                  | Extra CA certificates for HTTPS to peers and the registry.                                                     |
-| `DNSID_ALLOW_PRIVATE_HOSTS`                                       | none                                              | Comma-separated hosts that may resolve to private addresses. Testnets only.                                    |
-| `DNSID_LOG_POLICY_URL`                                            | DNSid's managed catalog                           | HTTPS URL of an operator policy: which transparency logs to trust.                                             |
-| `DNSID_LOG_POLICY_FILE`                                           | none                                              | The same policy from a file. Set one of the two, not both.                                                     |
-| `DNSID_LOG_CHECKPOINT_MAX_AGE`                                    | from the policy                                   | Seconds a log checkpoint may be old. Needs an operator policy.                                                 |
-| `DNSID_DNSSEC_MODE`                                               | `auto`                                            | Only `auto` works today.                                                                                       |
-| `DNSID_AWS_KMS_KEY_ID`                                            | none                                              | Sign with this AWS KMS key instead of `private.jwk`.                                                           |
-| `DNSID_AWS_KMS_ALGORITHM`                                         | `ED25519_SHA_512`                                 | Or `ECDSA_SHA_256`.                                                                                            |
-| `DNSID_AWS_KMS_RETAINED_KEY_IDS`, `DNSID_AWS_KMS_PENDING_KEY_IDS` | none                                              | Comma-separated, for key rotation. Retained keys still verify old signatures. Pending keys are not yet active. |
+| Variable                                                          | Default                                           | Meaning                                                                                                              |
+| ----------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `DNSID_CONFIG_DIR`                                                | `~/.dnsid`                                        | The agent's identity: `config.json` and `private.jwk`. The key comes from here or from KMS, never `DNSID_KEY_STORE`. |
+| `DNSID_AGENT_AUTH_AUDIENCE`                                       | `DNSID_REGISTRY_URL`, then `https://api.dnsid.ai` | The registry the bring-online hook authenticates to.                                                                 |
+| `DNSID_MODE`                                                      | `enforce`                                         | `observe` logs each verdict to stderr and denies nothing.                                                            |
+| `DNSID_ON_UNVERIFIABLE`                                           | `deny`                                            | `ask` turns a `Cannot verify` result into a permission prompt.                                                       |
+| `DNSID_MCP_SERVER_DOMAINS`                                        | `{}`                                              | JSON, MCP server name to agent domain. Every tool of a mapped server is verified against that domain.                |
+| `DNSID_CACHE_FILE`                                                | `$TMPDIR/dnsid-verdicts.json`                     | The verdict cache, shared between hook runs.                                                                         |
+| `DNSID_DNS_SERVER`                                                | the system resolver                               | DNS server for `_dnsid` lookups and the `fetch` tool.                                                                |
+| `DNSID_CA_BUNDLE`                                                 | the system store                                  | Extra CA certificates for HTTPS to peers and the registry.                                                           |
+| `DNSID_PRIVATE_HOSTS`                                             | none                                              | Comma-separated hosts, or `.suffix` entries, that may resolve to private addresses. `dnsid local run` sets it.       |
+| `DNSID_LOG_POLICY_URL`                                            | DNSid's managed catalog                           | HTTPS URL of an operator policy: which transparency logs to trust.                                                   |
+| `DNSID_LOG_POLICY_FILE`                                           | none                                              | The same policy from a file. Set one of the two, not both.                                                           |
+| `DNSID_LOG_CHECKPOINT_MAX_AGE`                                    | from the policy                                   | Seconds a log checkpoint may be old. Needs an operator policy.                                                       |
+| `DNSID_DNSSEC_MODE`                                               | `auto`                                            | Only `auto` works today.                                                                                             |
+| `DNSID_AWS_KMS_KEY_ID`                                            | none                                              | Sign with this AWS KMS key instead of `private.jwk`.                                                                 |
+| `DNSID_AWS_KMS_ALGORITHM`                                         | `ED25519_SHA_512`                                 | Or `ECDSA_SHA_256`.                                                                                                  |
+| `DNSID_AWS_KMS_RETAINED_KEY_IDS`, `DNSID_AWS_KMS_PENDING_KEY_IDS` | none                                              | Comma-separated, for key rotation. Retained keys still verify old signatures. Pending keys are not yet active.       |
 
 ## Layout
 
@@ -132,3 +133,8 @@ examples/demo/       a chat with Alice; each protocol step is a card, Bob's side
 ## License
 
 Apache-2.0
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Report security issues as
+[`SECURITY.md`](SECURITY.md) says.

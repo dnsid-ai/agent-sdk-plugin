@@ -8,7 +8,7 @@ at a time; [`../demo`](../demo/) is the same pair with a browser in front.
 | -------------- | ------------------------------------------------------------------------------- |
 | `alice.ts`     | An Agent SDK `query()` program with the plugin loaded. The prompt is `argv[2]`. |
 | `bob.ts`       | A plain HTTP server behind the proxy. Answers `GET`; verifies signed `POST`.    |
-| `.env.example` | Model credentials. Copy to `.env`.                                              |
+| `.env.example` | Optional model credentials. Copy to `.env`.                                     |
 
 The guide shows `alice.ts` and `bob.ts` in full; `tests/examples/guide.test.ts`
 keeps them identical. Inside this repo they import the plugin by package name,
@@ -16,33 +16,32 @@ which Node resolves to the repo itself.
 
 ## Quickstart
 
-Prerequisites: Docker, Node 22.18 or later, the `dnsid` CLI on your PATH, and a
-built `../dnsid-ts` linked with `npm run link-sdk`.
+Prerequisites: Docker, Node 24 or later, and the `dnsid` CLI
+([installation](https://docs.dnsid.ai/cli-installation)).
 
 ```sh
-# 1. Model credentials. Or export ANTHROPIC_API_KEY / CLAUDE_CODE_OAUTH_TOKEN.
+# 1. Optional: model credentials. Without them, the Agent SDK uses your Claude Code login.
 cp examples/minimal/.env.example examples/minimal/.env && $EDITOR examples/minimal/.env
 
-# 2. DNSid Local, with two agents. Until dnsid PR #2371 is in the published
-#    image, build it from that branch; the guide's section 1 has the command.
-dnsid testnet up
-dnsid testnet agent add alice --upstream http://localhost:3001
-dnsid testnet agent add bob   --upstream http://localhost:3002
+# 2. DNSid Local, with two agents.
+dnsid local up
+dnsid local agent add alice --upstream http://localhost:3001
+dnsid local agent add bob   --upstream http://localhost:3002
 
 # 3. Bob: bring him online and start his server, in its own terminal.
-dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
-dnsid testnet run bob --port 3002 -- node examples/minimal/bob.ts
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test
+dnsid local run bob --port 3002 -- node examples/minimal/bob.ts
 
 # 4. Alice. The plugin brings her online at session start.
-dnsid testnet run alice --port 3001 -- node --env-file-if-exists=examples/minimal/.env examples/minimal/alice.ts \
-  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response and stop.'
+dnsid local run alice --port 3001 -- node --env-file-if-exists=examples/minimal/.env examples/minimal/alice.ts \
+  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.test/ as application/json. Quote the response and stop.'
 ```
 
 Bob's terminal prints:
 
 ```
-verified signed POST / from alice.dev.dnsid.test
+verified signed POST / from alice.test
 ```
 
-`dnsid testnet run <agent>` supplies that agent's identity and DNSid Local's
+`dnsid local run <agent>` supplies that agent's identity and DNSid Local's
 network settings. Nothing else is configured.

@@ -7,7 +7,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { DNSSECState, VerificationCode } from '@dnsid-ai/sdk';
+import { DNSSECState, VerificationCode, type IdentityManager } from '@dnsid-ai/sdk';
 import { createNodeIdentityVerifier } from '@dnsid-ai/sdk/node';
 
 import { runVerifyHook } from '../../src/verify/verify-hook.ts';
@@ -113,6 +113,29 @@ describe('verify hook', () => {
       { withLog: false },
     );
     expect(await decisionOf(await ask())).toMatchObject({ permissionDecision: 'ask' });
+  });
+
+  it('treats a verification that does not finish in time as "cannot verify"', async () => {
+    // A peer that holds every connection open: verification never settles.
+    const stalled = {
+      verifyDomain: () => new Promise(() => {}),
+    } as unknown as IdentityManager;
+    const cacheFile = join(mkdtempSync(join(tmpdir(), 'dnsid-')), 'v.json');
+    const run = (env: NodeJS.ProcessEnv) =>
+      runVerifyHook({
+        stdin: JSON.stringify(webFetch()),
+        env: { DNSID_CACHE_FILE: cacheFile, ...env },
+        idm: stalled,
+        deadlineMs: 50,
+      });
+
+    expect(await decisionOf(await run({}))).toMatchObject({
+      permissionDecision: 'deny',
+      permissionDecisionReason: expect.stringMatching(/did not finish in 0\.05 s/),
+    });
+    expect(await decisionOf(await run({ DNSID_ON_UNVERIFIABLE: 'ask' }))).toMatchObject({
+      permissionDecision: 'ask',
+    });
   });
 
   it('observe mode logs the would-be decision and never returns one', async () => {

@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Two agents on DNSid Local, side by side: Alice runs the plugin, Bob verifies her.",
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "./dev.sh",
@@ -17,9 +17,9 @@
     "@anthropic-ai/claude-agent-sdk": "^0.3.273",
     "@fontsource/libre-franklin": "^5.2.5",
     "@fontsource/roboto-mono": "^5.2.5",
-    "@dnsid-ai/sdk": "file:../../../dnsid-ts/packages/sdk",
+    "@dnsid-ai/sdk": "^0.24.0",
     "@dnsid-ai/agent-sdk-plugin": "file:../..",
-    "@dnsid-ai/http-signatures": "file:../../../dnsid-ts/packages/http-signatures",
+    "@dnsid-ai/http-signatures": "^0.24.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

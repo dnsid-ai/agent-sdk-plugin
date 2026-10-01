@@ -1,17 +1,15 @@
 # @dnsid-ai/agent-sdk-plugin
 
-A standard Agent SDK plugin, all TypeScript on `dnsid-ts`, run by Node. Rules
-that hold: enforcement is a hook, signing and on-request verification are tools,
-onboarding is a `SessionStart` hook, and the model can decline none of them.
-Only `src/sign/`, `src/online/`, and `src/mcp.ts` touch key material;
-`src/verify/` holds no identity. "Cannot verify" never maps to allow.
-Configuration is environment variables only.
+A standard Agent SDK plugin, all TypeScript, run by Node. Rules that hold:
+enforcement is a hook, signing and on-request verification are tools, onboarding
+is a `SessionStart` hook, and the model can decline none of them. Only
+`src/sign/`, `src/online/`, and `src/mcp.ts` touch key material; `src/verify/`
+holds no identity. "Cannot verify" never maps to allow. Configuration is
+environment variables only.
 
 ## Setup and checks
 
-The `dnsid-ts` packages are not on npm, so plain `npm install` fails. Build the
-sibling checkout, then link it: `cd ../dnsid-ts && npm ci && npm run build`,
-then `npm run link-sdk` here. Done means `npm test`, `npm run typecheck`, and
+`npm install`, then done means `npm test`, `npm run typecheck`, and
 `npx prettier --check .` pass.
 
 ## Code
@@ -27,17 +25,14 @@ the way the harness runs it.
 `docs/guide.md` is one program, `examples/minimal/alice.ts`, run with a
 different prompt per section. Every command and every output in it comes from a
 real run on DNSid Local; a claim not yet run carries a `**TODO (for us).**` note
-that says what to run. Running `alice.ts` needs model credentials the agent
-session does not have, so ask the user to run it. The guide shows
-`examples/minimal/alice.ts` and `examples/minimal/bob.ts` verbatim;
-`tests/examples/guide.test.ts` enforces it.
+that says what to run. The guide shows `examples/minimal/alice.ts` and
+`examples/minimal/bob.ts` verbatim; `tests/examples/guide.test.ts` enforces it.
 
 Writing rules: Simplified Technical English, zero hard violations from the
 `asd-ste100` lint. Command, then what it did. Introduce a thing before its short
 name. "Verify" is the one verb for verifying identities. No rhetorical
 questions, no idioms, no threat framing. Bold a DNSid term only on first
-definition. Where production differs, one **In production** note at the end of
-the section.
+definition. The guide covers DNSid Local only.
 
 ## Process
 
@@ -52,13 +47,16 @@ answer honestly even if it undoes work.
 ## The demo
 
 `examples/demo` is standalone: `npm run dev` there starts Alice and Bob under
-`dnsid testnet run` and a Vite page. Alice's server turns the SDK's message
-stream into trace events. The SDK reports SessionStart hooks but not PreToolUse
-ones, so the verify hook's decision is read from its verdict cache, or inferred
-from a tool result that carries an HTTP status.
+`dnsid local run` and a Vite page. The chat is Alice's view: her server streams
+each turn's Agent SDK messages to the page, and Bob's reply says whom he
+verified. Bob and Carol are props that pass or fail her checks. The SDK reports
+SessionStart hooks but not PreToolUse ones, so the page reads the verify hook's
+decision from the tool result: the hook's reason on a denial, an HTTP status on
+an allow.
 
 ## DNSid Local
 
-The local testnet is `dnsid testnet` in the CLI; upstream is renaming it
-`dnsid local`. `DNSID_MODE=observe` logs every verdict and denies nothing, for
-debugging the verify hook.
+The CLI exports the zone as `DNSID_TESTNET_ZONE`. In a log reference,
+`c2sp-tlog:testnet:` is the spec's scope for non-production logs, not a name.
+`DNSID_MODE=observe` logs every verdict and denies nothing, for debugging the
+verify hook.

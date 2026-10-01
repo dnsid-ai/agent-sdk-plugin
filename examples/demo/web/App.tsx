@@ -1,42 +1,32 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-interface TraceEvent {
-  at: number;
-  source: 'alice' | 'bob';
-  kind: string;
-  title: string;
-  data?: unknown;
-}
-
-interface Identity {
-  domain: string;
-  kid?: string;
-  record: Record<string, string> | null;
-}
-
-/** One question to Alice and everything that happened because of it. */
-interface Turn {
-  prompt: TraceEvent;
-  events: TraceEvent[];
-  done: boolean;
-}
+import {
+  bobSaid,
+  secondsOf,
+  stepsOf,
+  type BobSaid,
+  type Call,
+  type Turn,
+  type Verdict,
+} from './turn.ts';
+import { useConversation, useIdentity, type Identity } from './hooks.ts';
 
 const PROMPTS = [
   [
     'Who is Bob?',
-    'Use the dnsid verify tool on bob.dev.dnsid.test. Say in one sentence who he is and whether he may be called, and stop.',
+    'Use the dnsid verify tool on bob.test. Say in one sentence who he is and whether he may be called, and stop.',
   ],
   [
     'Say hello to Bob',
-    'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response body and stop.',
+    'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.test/ as application/json. Quote the response body and stop.',
   ],
   [
     'Call Carol',
-    'Use the dnsid fetch tool to GET https://carol.dev.dnsid.test/. Quote the response body, or the denial reason, and stop.',
+    'Use the dnsid fetch tool to GET https://carol.test/. Quote the response body, or the denial reason, and stop.',
   ],
 ] as const;
 
-// The four steps of verification, and which failure code lands on which.
+// The four verification steps, and the step each failure code belongs to.
 const STEPS = ['DNS record', 'Keys and signature', 'Status', 'Transparency log'];
 const FAILING_STEP: Record<string, number> = {
   DNSResolution: 0,
@@ -50,71 +40,6 @@ const FAILING_STEP: Record<string, number> = {
   LogError: 3,
   CounterpartyNotAccepted: 3,
 };
-
-// EventSource reconnects on error, but a server restart behind the dev proxy
-// can leave a silent dead connection; the server pings every 10s, so 30s of
-// silence means reconnect.
-function useEvents(url: string, onEvent: (e: TraceEvent) => void) {
-  useEffect(() => {
-    let source: EventSource;
-    let watchdog: ReturnType<typeof setTimeout>;
-    const open = () => {
-      source = new EventSource(url);
-      const alive = () => {
-        clearTimeout(watchdog);
-        watchdog = setTimeout(() => {
-          source.close();
-          open();
-        }, 30_000);
-      };
-      source.onopen = alive;
-      source.addEventListener('ping', alive);
-      source.onmessage = (m) => {
-        alive();
-        onEvent(JSON.parse(m.data));
-      };
-    };
-    open();
-    return () => {
-      clearTimeout(watchdog);
-      source.close();
-    };
-  }, [url]);
-}
-
-function useIdentity(url: string) {
-  const [identity, setIdentity] = useState<Identity | null>(null);
-  useEffect(() => {
-    const load = () =>
-      fetch(url)
-        .then((r) => r.json())
-        .then(setIdentity, () => setIdentity(null));
-    load();
-    const timer = setInterval(load, 15_000);
-    return () => clearInterval(timer);
-  }, [url]);
-  return identity;
-}
-
-function turnsOf(events: TraceEvent[]): Turn[] {
-  const turns: Turn[] = [];
-  for (const e of events) {
-    if (e.source === 'alice' && e.kind === 'prompt') {
-      turns.push({ prompt: e, events: [], done: false });
-      continue;
-    }
-    const turn = turns.at(-1);
-    if (!turn) continue;
-    if (e.kind === 'done' || e.kind === 'error') turn.done = true;
-    // The hook's allow is only known once the tool result arrives, but it
-    // happened before the call left; show it right after the tool call.
-    const isAllow = e.kind === 'hook' && e.title.startsWith('Verify hook');
-    const call = isAllow ? turn.events.findLastIndex((x) => x.kind === 'tool-call') : -1;
-    if (call >= 0) turn.events.splice(call + 1, 0, e);
-    else turn.events.push(e);
-  }
-  return turns;
-}
 
 const short = (v: string | undefined, n = 16) =>
   v && v.length > n ? `${v.slice(0, n)}…` : (v ?? '');
@@ -131,28 +56,7 @@ function parseSignatureInput(value: string) {
   };
 }
 
-function Sidebar({
-  alice,
-  bob,
-  turns,
-}: {
-  alice: Identity | null;
-  bob: Identity | null;
-  turns: Turn[];
-}) {
-  const all = turns.flatMap((t) => t.events);
-  const count = (f: (e: TraceEvent) => boolean) => all.filter(f).length;
-  const ledger = [
-    ['questions', turns.length],
-    [
-      'verified',
-      count(
-        (e) => (e.kind === 'hook' && e.title.includes('ACTIVE')) || e.kind === 'verified',
-      ),
-    ],
-    ['refused', count((e) => e.kind === 'deny' || e.kind === 'rejected')],
-    ['signed', count((e) => e.kind === 'request')],
-  ] as const;
+function Sidebar({ alice }: { alice: Identity | null }) {
   return (
     <aside className="sidebar">
       <h1>
@@ -165,15 +69,6 @@ function Sidebar({
         what she sends; Bob verifies her back.
       </p>
       <IdentityCard name="Alice" role="asks, verifies, signs" identity={alice} />
-      <IdentityCard name="Bob" role="answers, verifies the caller" identity={bob} />
-      <section className="ledger">
-        {ledger.map(([label, n]) => (
-          <div key={label}>
-            <b>{n}</b>
-            <span>{label}</span>
-          </div>
-        ))}
-      </section>
       <dl className="links">
         <dt>web</dt>
         <dd>
@@ -267,33 +162,31 @@ function Steps({ failedAt }: { failedAt?: number }) {
   );
 }
 
-function VerdictCard({ e }: { e: TraceEvent }) {
-  const d = (e.data ?? {}) as {
-    domain?: string;
-    state?: string;
-    expiresAt?: string;
-    code?: string;
-    message?: string;
-    cannotVerify?: boolean;
-  };
-  const host =
-    d.domain ??
-    /denied (\S+):|hook: (\S+) is/.exec(e.title)?.slice(1).find(Boolean) ??
-    /DNSid: (\S+?):/.exec(e.title)?.[1];
-  if (e.kind === 'deny') {
-    const code = d.code ?? /: (\w+):/.exec(e.title)?.[1] ?? '';
+function VerdictCard({
+  host,
+  v,
+  beforeCall,
+}: {
+  host: string;
+  v: Verdict;
+  /** True when the verify hook decided before a fetch; false for the verify tool. */
+  beforeCall: boolean;
+}) {
+  if (!v.ok) {
     return (
       <article className="card verdict bad">
         <span className="kicker">Verify peer · before the call</span>
         <header>
           <b>Alice verifies {host}</b>
-          <span className="pill bad">{d.cannotVerify ? 'cannot verify' : 'refused'}</span>
+          <span className="pill bad">{v.cannotVerify ? 'cannot verify' : 'refused'}</span>
         </header>
-        <Steps failedAt={FAILING_STEP[code] ?? 0} />
+        <Steps failedAt={FAILING_STEP[v.code ?? ''] ?? 0} />
         <p className="reason">
-          <code>{code}</code> {d.message ?? e.title.split(': ').slice(-1)[0]}
+          <code>{v.code}</code> {v.message}
         </p>
-        <footer>The request never left. The plugin denies before the tool runs.</footer>
+        {beforeCall && (
+          <footer>The request never left. The plugin denies before the tool runs.</footer>
+        )}
       </article>
     );
   }
@@ -302,41 +195,32 @@ function VerdictCard({ e }: { e: TraceEvent }) {
       <span className="kicker">Verify peer · before the call</span>
       <header>
         <b>Alice verifies {host}</b>
-        <span className="pill ok">{d.state ?? 'ACTIVE'}</span>
+        <span className="pill ok">{v.state ?? 'ACTIVE'}</span>
       </header>
       <Steps />
-      {d.expiresAt && (
-        <footer title={`until ${new Date(d.expiresAt).toLocaleTimeString()}`}>
-          Verdict cached for{' '}
-          {Math.max(1, Math.round((Date.parse(d.expiresAt) - e.at) / 60_000))} min.
-        </footer>
-      )}
-      {!d.expiresAt && <footer>All four checks passed; the call may proceed.</footer>}
+      <footer>All four checks passed; the call may proceed.</footer>
     </article>
   );
 }
 
-function RequestCard({ e }: { e: TraceEvent }) {
-  const [open, setOpen] = useState(false);
-  const d = e.data as {
-    method: string;
-    url: string;
-    headers: Record<string, string>;
-    body?: string;
-  };
-  const parsed = d.headers['signature-input']
-    ? parseSignatureInput(d.headers['signature-input'])
-    : null;
-  const signed = ['content-digest', 'signature', 'signature-input'];
+function RequestCard({
+  request,
+  signature,
+}: {
+  request: NonNullable<Call['request']>;
+  /** The Signature-Input header, as Bob received it. */
+  signature?: string;
+}) {
+  const parsed = signature ? parseSignatureInput(signature) : null;
   return (
     <article className="card request">
       <span className="kicker">Sign request · RFC 9421</span>
       <header>
         <b>
-          On the wire <span className="arrow">→</span> Bob receives
+          Alice signs <span className="arrow">→</span> Bob receives
         </b>
         <code>
-          {d.method} {new URL(d.url).pathname}
+          {request.method} {request.path}
         </code>
       </header>
       {parsed ? (
@@ -355,74 +239,43 @@ function RequestCard({ e }: { e: TraceEvent }) {
           </ul>
         </>
       ) : (
-        <p className="muted">No signature on this request.</p>
+        <p className="muted">Bob did not report a signature.</p>
       )}
-      {d.body && <pre className="body">{d.body}</pre>}
-      <button className="link" onClick={() => setOpen(!open)}>
-        {open ? 'hide headers ▴' : 'show headers ▾'}
-      </button>
-      {open && (
-        <div className="headers">
-          {Object.entries(d.headers)
-            .filter(
-              ([k]) =>
-                ![
-                  'host',
-                  'connection',
-                  'accept-encoding',
-                  'user-agent',
-                  'content-length',
-                  'transfer-encoding',
-                ].includes(k) && !k.startsWith('x-'),
-            )
-            .map(([k, v]) => (
-              <div key={k} className={signed.includes(k) ? 'sig' : ''}>
-                <b>{k}</b>: {v}
-              </div>
-            ))}
-        </div>
-      )}
+      {request.body && <pre className="body">{request.body}</pre>}
     </article>
   );
 }
 
-function PeerCard({ e }: { e: TraceEvent }) {
-  const ok = e.kind === 'verified';
-  const d = (e.data ?? {}) as { sender?: string; code?: string; message?: string };
+function PeerCard({ from, refused }: BobSaid) {
   return (
-    <article className={`card peer ${ok ? 'ok' : 'bad'}`}>
-      <span className="kicker">Be verifiable · Bob's side</span>
+    <article className={`card peer ${from ? 'ok' : 'bad'}`}>
+      <span className="kicker">Be verifiable · Bob's answer</span>
       <header>
         <b>Bob verifies the caller</b>
-        <span className={`pill ${ok ? 'ok' : 'bad'}`}>
-          {ok ? 'verified' : 'rejected'}
+        <span className={`pill ${from ? 'ok' : 'bad'}`}>
+          {from ? 'verified' : 'rejected'}
         </span>
       </header>
-      {ok ? (
+      {from ? (
         <p>
-          From <code>keyid</code> Bob found <code>{d.sender}</code>, fetched her key, and
+          From <code>keyid</code> Bob found <code>{from}</code>, fetched her key, and
           checked the signature. He knows who is asking.
         </p>
       ) : (
         <p className="reason">
-          <code>{d.code}</code> {d.message}
+          <code>{refused?.code}</code> {refused?.message}
         </p>
       )}
     </article>
   );
 }
 
-function ResponseCard({ e }: { e: TraceEvent }) {
-  const d = e.data as {
-    status?: number;
-    body?: string;
-    headers?: Record<string, string>;
-  };
-  let body = d.body ?? '';
+function ResponseCard({ status, body: raw }: { status: number; body: string }) {
+  let body = raw;
   try {
     body = JSON.stringify(JSON.parse(body), null, 2);
   } catch {
-    /* plain text */
+    // Not JSON: show the body as it is.
   }
   return (
     <article className="card response">
@@ -431,16 +284,15 @@ function ResponseCard({ e }: { e: TraceEvent }) {
         <b>
           Bob answers <span className="arrow">→</span> Alice
         </b>
-        <span className={`pill ${(d.status ?? 500) < 400 ? 'ok' : 'bad'}`}>
-          HTTP {d.status}
-        </span>
+        <span className={`pill ${status < 400 ? 'ok' : 'bad'}`}>HTTP {status}</span>
       </header>
       <pre className="body">{body.trim()}</pre>
     </article>
   );
 }
 
-// Fenced blocks become <pre>, `spans` become <code>. Enough for a short reply.
+// Just enough Markdown for Alice's short replies: fenced blocks become <pre>,
+// `spans` become <code>.
 function Inline({ text }: { text: string }) {
   return (
     <>{text.split('`').map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}</>
@@ -467,35 +319,32 @@ function Reply({ text }: { text: string }) {
   );
 }
 
-// Shown while either server is unreachable: the testnet is not set up, or
+// Shown while Alice's server is unreachable: DNSid Local is not set up, or
 // `npm run dev` is not running.
-function Setup({ alice, bob }: { alice: Identity | null; bob: Identity | null }) {
-  const down =
-    !alice && !bob ? 'Alice and Bob are down' : !alice ? 'Alice is down' : 'Bob is down';
+function Setup() {
   return (
     <div className="setup card">
       <header>
         <b>First boot</b>
-        <span className="pill bad">{down}</span>
+        <span className="pill bad">Alice is down</span>
       </header>
       <p>
         DNSid Local needs three agents, one of them never issued. Once, in a terminal:
       </p>
-      <pre className="body">{`dnsid testnet up
-dnsid testnet agent add alice --upstream http://localhost:3001
-dnsid testnet agent add bob   --upstream http://localhost:3002
-dnsid testnet agent add carol --upstream http://localhost:3004
-dnsid testnet run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test`}</pre>
+      <pre className="body">{`dnsid local up
+dnsid local agent add alice --upstream http://localhost:3001
+dnsid local agent add bob   --upstream http://localhost:3002
+dnsid local agent add carol --upstream http://localhost:3004
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test`}</pre>
       <p>
         Then <code>npm run dev</code> here; this page reconnects on its own. To start
-        over: <code>dnsid testnet reset --hard</code>, then the commands above.
+        over: <code>dnsid local reset --hard</code>, then the commands above.
       </p>
     </div>
   );
 }
 
-function OnlineLine({ e }: { e: TraceEvent }) {
-  const text = e.title.replace(/^DNSid: this agent is \S+\.\s*/, '');
+function OnlineLine({ text }: { text: string }) {
   const online = /READY|accepted/.test(text);
   return (
     <div className={`online ${online ? 'ok' : 'bad'}`}>
@@ -505,45 +354,51 @@ function OnlineLine({ e }: { e: TraceEvent }) {
   );
 }
 
+// A tool call's cards, in order: verdict, signed request, Bob's check, response.
+function CallCards({ call }: { call: Call }) {
+  const bob = bobSaid(call.response);
+  return (
+    <>
+      {call.verdict && (
+        <VerdictCard
+          host={call.host}
+          v={call.verdict}
+          beforeCall={call.tool === 'fetch'}
+        />
+      )}
+      {call.request && call.response && (
+        <RequestCard request={call.request} signature={bob?.signature} />
+      )}
+      {bob && <PeerCard {...bob} />}
+      {call.response && <ResponseCard {...call.response} />}
+    </>
+  );
+}
+
 // The harness runs the SessionStart hook on a resume too, so the same
 // bring-online line arrives every turn. Show it when it says something new.
-const onlineLine = (t: Turn) =>
-  t.events.find((e) => e.kind === 'hook' && e.title.startsWith('DNSid: this agent is'))
-    ?.title;
+const onlineText = (t?: Turn) =>
+  t && stepsOf(t).flatMap((s) => (s.type === 'online' ? [s.text] : []))[0];
 
 function TurnView({ turn, previous }: { turn: Turn; previous?: Turn }) {
-  const cards = turn.events.map((e, i) => {
-    const key = `${e.at}-${i}`;
-    if (e.kind === 'hook' && e.title.startsWith('DNSid: this agent is')) {
-      return previous && onlineLine(previous) === e.title ? null : (
-        <OnlineLine key={key} e={e} />
-      );
-    }
-    if (e.kind === 'deny' || (e.kind === 'hook' && /Verify hook|Verdict/.test(e.title)))
-      return <VerdictCard key={key} e={e} />;
-    if (e.kind === 'request') return <RequestCard key={key} e={e} />;
-    if (e.kind === 'verified' || e.kind === 'rejected')
-      return <PeerCard key={key} e={e} />;
-    if (e.kind === 'tool-result' && (e.data as { status?: number })?.status !== undefined)
-      return <ResponseCard key={key} e={e} />;
-    if (e.kind === 'text') return <Reply key={key} text={e.title} />;
-    if (e.kind === 'error')
-      return (
-        <p key={key} className="error">
-          {e.title}
-        </p>
-      );
-    return null;
-  });
-  const done = turn.events.find((e) => e.kind === 'done')?.data as
-    { duration_ms?: number } | undefined;
+  const repeat = onlineText(previous);
+  const seconds = secondsOf(turn);
   return (
     <section className="turn">
-      <div className="you" title={turn.prompt.title}>
-        {PROMPTS.find(([, prompt]) => prompt === turn.prompt.title)?.[0] ??
-          turn.prompt.title}
+      <div className="you" title={turn.prompt}>
+        {PROMPTS.find(([, prompt]) => prompt === turn.prompt)?.[0] ?? turn.prompt}
       </div>
-      {cards}
+      {stepsOf(turn).map((step, i) => {
+        switch (step.type) {
+          case 'online':
+            return step.text === repeat ? null : <OnlineLine key={i} text={step.text} />;
+          case 'call':
+            return <CallCards key={i} call={step.call} />;
+          case 'reply':
+            return <Reply key={i} text={step.text} />;
+        }
+      })}
+      {turn.error && <p className="error">{turn.error}</p>}
       {!turn.done && (
         <div className="thinking">
           <span />
@@ -551,46 +406,32 @@ function TurnView({ turn, previous }: { turn: Turn; previous?: Turn }) {
           <span />
         </div>
       )}
-      {done?.duration_ms && (
-        <div className="took">{(done.duration_ms / 1000).toFixed(1)}s</div>
-      )}
+      {seconds && <div className="took">{seconds.toFixed(1)}s</div>}
     </section>
   );
 }
 
 export function App() {
-  const [events, setEvents] = useState<TraceEvent[]>([]);
-  // A reconnect replays the server's history, so an event may arrive twice.
-  const add = (e: TraceEvent) =>
-    setEvents((prev) =>
-      prev.some((p) => p.at === e.at && p.source === e.source && p.title === e.title)
-        ? prev
-        : [...prev, e].sort((a, b) => a.at - b.at),
-    );
-  useEvents('/alice/events', add);
-  useEvents('/bob/events', add);
+  const { turns, busy, send, clear } = useConversation();
   const alice = useIdentity('/alice/identity');
-  const bob = useIdentity('/bob/identity');
-  const turns = useMemo(() => turnsOf(events), [events]);
-  const busy = turns.at(-1)?.done === false;
   const [draft, setDraft] = useState('');
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [events.length]);
+  }, [turns]);
 
-  const send = (prompt: string) => {
+  const submit = (prompt: string) => {
     setDraft('');
-    fetch('/alice/prompt', { method: 'POST', body: JSON.stringify({ prompt }) });
+    send(prompt);
   };
 
   return (
     <div className="app">
-      <Sidebar alice={alice} bob={bob} turns={turns} />
+      <Sidebar alice={alice} />
       <main>
         <div className="feed">
           {turns.length === 0 &&
-            (alice && bob ? (
+            (alice ? (
               <div className="welcome">
                 <p>
                   Alice is an agent with the DNSid plugin. Ask her to talk to Bob and
@@ -599,10 +440,10 @@ export function App() {
                 </p>
               </div>
             ) : (
-              <Setup alice={alice} bob={bob} />
+              <Setup />
             ))}
           {turns.map((t, i) => (
-            <TurnView key={t.prompt.at} turn={t} previous={turns[i - 1]} />
+            <TurnView key={i} turn={t} previous={turns[i - 1]} />
           ))}
           <div ref={end} />
         </div>
@@ -610,7 +451,7 @@ export function App() {
           className="composer"
           onSubmit={(e) => {
             e.preventDefault();
-            if (draft.trim()) send(draft.trim());
+            if (draft.trim()) submit(draft.trim());
           }}
         >
           <div className="chips">
@@ -619,12 +460,12 @@ export function App() {
                 key={label}
                 type="button"
                 disabled={busy}
-                onClick={() => send(prompt)}
+                onClick={() => submit(prompt)}
               >
                 {label}
               </button>
             ))}
-            <button type="button" className="ghost" onClick={() => setEvents([])}>
+            <button type="button" className="ghost" onClick={clear}>
               clear
             </button>
           </div>

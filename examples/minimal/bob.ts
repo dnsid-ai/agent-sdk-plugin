@@ -3,7 +3,7 @@
  * GET answers anyone; POST must carry a DNSid HTTP message signature, and the
  * reply names who sent it.
  *
- *   dnsid testnet run bob --port 3002 -- node bob.ts
+ *   dnsid local run bob --port 3002 -- node bob.ts
  */
 import { createServer, type IncomingMessage } from 'node:http';
 import { text } from 'node:stream/consumers';
@@ -42,12 +42,6 @@ async function toRequest(req: IncomingMessage, domain: string): Promise<Request>
 if (import.meta.main) {
   const domain = process.env.DNSID_DOMAIN;
   if (!domain) throw new Error('DNSID_DOMAIN is not set');
-
-  // DNSid Local only: see alice.ts.
-  const zone = process.env.DNSID_TESTNET_ZONE;
-  if (zone) {
-    process.env.DNSID_ALLOW_PRIVATE_HOSTS ??= `alice.${zone},registry.${zone},dnsid.dnsid.test`;
-  }
 
   const respond = handler(
     domain,
