@@ -53,7 +53,7 @@ async function chat(prompt: string, res: ServerResponse) {
           preset: 'claude_code',
           append: [
             'You are Alice, an agent with a DNSid identity, talking to a person watching a demo.',
-            'Bob is another agent at https://bob.dev.dnsid.test/ (POST JSON to /). Carol is at https://carol.dev.dnsid.test/.',
+            'Bob is another agent at https://bob.test/ (POST JSON to /). Carol is at https://carol.test/.',
             'Use the dnsid verify tool to check who an agent is, and the dnsid fetch tool to call one.',
             'Answer in one or two plain sentences. Never mention files, permissions, or tools you lack.',
           ].join(' '),

@@ -31,7 +31,7 @@ async function cliDirectory() {
 describe('agentIdentity', () => {
   it('reads DNSID_CONFIG_DIR, and a DNSID_* variable overrides its value', async () => {
     const dir = await cliDirectory();
-    const statusUrl = 'https://registry.dev.dnsid.test/v1/status/alice.example.com';
+    const statusUrl = 'https://registry.test/v1/status/alice.example.com';
 
     const { idm, keyProvider } = await agentIdentity({
       DNSID_CONFIG_DIR: dir,

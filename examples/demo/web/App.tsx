@@ -14,15 +14,15 @@ import { useConversation, useIdentity, type Identity } from './hooks.ts';
 const PROMPTS = [
   [
     'Who is Bob?',
-    'Use the dnsid verify tool on bob.dev.dnsid.test. Say in one sentence who he is and whether he may be called, and stop.',
+    'Use the dnsid verify tool on bob.test. Say in one sentence who he is and whether he may be called, and stop.',
   ],
   [
     'Say hello to Bob',
-    'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response body and stop.',
+    'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.test/ as application/json. Quote the response body and stop.',
   ],
   [
     'Call Carol',
-    'Use the dnsid fetch tool to GET https://carol.dev.dnsid.test/. Quote the response body, or the denial reason, and stop.',
+    'Use the dnsid fetch tool to GET https://carol.test/. Quote the response body, or the denial reason, and stop.',
   ],
 ] as const;
 
@@ -335,7 +335,7 @@ function Setup() {
 dnsid local agent add alice --upstream http://localhost:3001
 dnsid local agent add bob   --upstream http://localhost:3002
 dnsid local agent add carol --upstream http://localhost:3004
-dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test`}</pre>
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test`}</pre>
       <p>
         Then <code>npm run dev</code> here; this page reconnects on its own. To start
         over: <code>dnsid local reset --hard</code>, then the commands above.

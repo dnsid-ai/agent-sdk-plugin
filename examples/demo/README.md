@@ -19,7 +19,7 @@ dnsid local up
 dnsid local agent add alice --upstream http://localhost:3001
 dnsid local agent add bob   --upstream http://localhost:3002
 dnsid local agent add carol --upstream http://localhost:3004
-dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test
 ```
 
 > **TODO (for us, remove before publishing).** `package.json` installs the

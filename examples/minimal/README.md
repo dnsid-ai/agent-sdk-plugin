@@ -29,18 +29,18 @@ dnsid local agent add alice --upstream http://localhost:3001
 dnsid local agent add bob   --upstream http://localhost:3002
 
 # 3. Bob: bring him online and start his server, in its own terminal.
-dnsid local run bob --port 3002 -- dnsid log issue --domain bob.dev.dnsid.test
+dnsid local run bob --port 3002 -- dnsid log issue --domain bob.test
 dnsid local run bob --port 3002 -- node examples/minimal/bob.ts
 
 # 4. Alice. The plugin brings her online at session start.
 dnsid local run alice --port 3001 -- node --env-file-if-exists=examples/minimal/.env examples/minimal/alice.ts \
-  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.dev.dnsid.test/ as application/json. Quote the response and stop.'
+  'Use the dnsid fetch tool to POST {"hello":"bob"} to https://bob.test/ as application/json. Quote the response and stop.'
 ```
 
 Bob's terminal prints:
 
 ```
-verified signed POST / from alice.dev.dnsid.test
+verified signed POST / from alice.test
 ```
 
 `dnsid local run <agent>` supplies that agent's identity and DNSid Local's

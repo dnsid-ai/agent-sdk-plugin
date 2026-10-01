@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { extractHost, mcpServerName } from '../../src/verify/extract-host.ts';
 
-const config = { serverDomains: { bob: 'Bob.dev.dnsid.test' } };
+const config = { serverDomains: { bob: 'Bob.test' } };
 
 describe('mcpServerName', () => {
   it('reads the server segment', () => {
@@ -31,14 +31,12 @@ describe('extractHost', () => {
   });
   it('our fetch tool, plugin-namespaced or bare → hostname of tool_input.url', () => {
     for (const name of ['mcp__plugin_dnsid_dnsid__fetch', 'mcp__dnsid__fetch']) {
-      expect(extractHost(name, { url: 'https://bob.dev.dnsid.test/a2a' }, config)).toBe(
-        'bob.dev.dnsid.test',
-      );
+      expect(extractHost(name, { url: 'https://bob.test/a2a' }, config)).toBe('bob.test');
     }
   });
   it('mcp__<server>__* with server in serverDomains → the mapped domain, lowercased', () => {
     expect(extractHost('mcp__bob__send_message', { text: 'hi' }, config)).toBe(
-      'bob.dev.dnsid.test',
+      'bob.test',
     );
   });
   it('mcp__<server>__* with server not in serverDomains → undefined', () => {
