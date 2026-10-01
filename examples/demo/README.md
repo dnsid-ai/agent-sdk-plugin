@@ -9,7 +9,7 @@ simulated.
 
 ## Run it
 
-Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI
+Prerequisites: Docker, Node 24 or later, and the `dnsid` CLI
 ([installation](https://docs.dnsid.ai/cli-installation)). Model credentials are
 optional: without `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` in your shell
 or in `.env` here (copy `.env.example`), the Agent SDK uses your Claude Code

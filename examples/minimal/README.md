@@ -16,7 +16,7 @@ which Node resolves to the repo itself.
 
 ## Quickstart
 
-Prerequisites: Docker, Node 22.18 or later, and the `dnsid` CLI
+Prerequisites: Docker, Node 24 or later, and the `dnsid` CLI
 ([installation](https://docs.dnsid.ai/cli-installation)).
 
 ```sh

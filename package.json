@@ -26,7 +26,7 @@
     "url": "git+https://github.com/dnsid-ai/agent-sdk-plugin.git"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=24"
   },
   "scripts": {
     "test": "npm run build && vitest run",

@@ -15,7 +15,7 @@ machine.
 ## Prerequisites
 
 - Docker
-- Node 22.18 or later
+- Node 24 or later
 - Optional: model credentials for the Agent SDK, `ANTHROPIC_API_KEY` or
   `CLAUDE_CODE_OAUTH_TOKEN`, in your environment or in a `.env` file in the
   directory section 2 makes. Without them, the Agent SDK uses your Claude Code
