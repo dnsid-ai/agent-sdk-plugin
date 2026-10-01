@@ -1,7 +1,6 @@
 {
   "name": "@dnsid-ai/agent-sdk-plugin",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
   "description": "DNSid for agents on the Claude Agent SDK, as a plugin: verify peers, sign requests, bring the agent online.",
   "type": "module",
   "exports": {
@@ -18,10 +17,13 @@
     ".mcp.json",
     "skills/*/SKILL.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dnsid-ai/agent-sdk-plugin.git"
+    "url": "git+https://github.com/dnsid-ai/agent-sdk-plugin.git"
   },
   "engines": {
     "node": ">=22.18.0"
@@ -32,7 +34,9 @@
     "typecheck": "tsc --noEmit",
     "alice": "node examples/minimal/alice.ts",
     "build": "tsc -p tsconfig.build.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "smoke:pack": "sh scripts/smoke-pack.sh",
+    "version": "node scripts/sync-plugin-version.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.1101.0",

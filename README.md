@@ -16,11 +16,10 @@ plugin. Load it and the agent:
 [`examples/demo`](examples/demo/) is a chat with Alice where every step renders
 as a card.
 
-## Setup
+## Install
 
 ```sh
-npm install
-npm test
+npm install @dnsid-ai/agent-sdk-plugin
 ```
 
 ## Use
@@ -28,7 +27,9 @@ npm test
 ```ts
 query({
   prompt,
-  options: { plugins: [{ type: 'local', path: '/path/to/agent-sdk-plugin' }] },
+  options: {
+    plugins: [{ type: 'local', path: 'node_modules/@dnsid-ai/agent-sdk-plugin' }],
+  },
 });
 ```
 
@@ -132,3 +133,8 @@ examples/demo/       a chat with Alice; each protocol step is a card, Bob's side
 ## License
 
 Apache-2.0
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Report security issues as
+[`SECURITY.md`](SECURITY.md) says.

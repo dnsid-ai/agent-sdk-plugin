@@ -1,0 +1,125 @@
+name: Release
+
+# Run manually from the Actions tab, after the version bump is merged into main.
+#
+# Required permissions (already granted via the `permissions` block below):
+#   contents: write  — to create the git tag and GitHub Release
+#   id-token: write  — npmjs trusted publishing (OIDC) with provenance; staged, approved by a maintainer
+#
+# Publishing uses npmjs trusted publishing: no npm token is stored in this
+# repository. @dnsid-ai/agent-sdk-plugin must have this repository + workflow
+# file registered as a trusted publisher on npmjs.com. A brand-new package
+# cannot be created via OIDC; publish its first version manually
+# (`npm publish --access public` as an @dnsid-ai org member), then add the
+# trusted publisher. See CONTRIBUTING.md → "Publishing to npm".
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          [ -n "$VERSION" ] || { echo "ERROR: could not read version from package.json"; exit 1; }
+          echo "version=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${VERSION#v}"
+          awk -v version="$VERSION" '
+            BEGIN { header = "## [" version "]" }
+            index($0, header) == 1 { in_section = 1 }
+            in_section && /^## \[/ && index($0, header) != 1 { exit }
+            in_section { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          [ -s /tmp/release-notes.md ] || { echo "ERROR: could not extract release notes for v${VERSION}"; exit 1; }
+          echo "--- release notes ---"
+          cat /tmp/release-notes.md
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1. The current Node 24
+      # release bundles it; this step fails the release if it ever does not.
+      - name: Check npm for trusted publishing
+        run: npx -y semver -r '>=11.5.1' "$(npm --version)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate synchronized versions
+        run: |
+          PLUGIN=$(node -p 'require("./.claude-plugin/plugin.json").version')
+          [ "v${PLUGIN}" = "${{ steps.version.outputs.version }}" ] || { echo "ERROR: .claude-plugin/plugin.json is ${PLUGIN}, package.json is ${{ steps.version.outputs.version }}"; exit 1; }
+
+      - name: Run typechecks
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Test the packed package
+        run: npm run smoke:pack
+
+      - name: Build and pack
+        run: |
+          mkdir -p tarballs
+          npm pack --pack-destination tarballs --json
+          ls -lh tarballs/*.tgz
+
+      - name: Tag release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.version.outputs.version }} already exists, skipping"
+          else
+            git tag -a "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+            git push origin "${{ steps.version.outputs.version }}"
+          fi
+
+      - name: Create GitHub Release
+        run: |
+          TAG="${{ steps.version.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; refreshing assets"
+            gh release upload "$TAG" tarballs/*.tgz --clobber
+          else
+            gh release create "$TAG" \
+              tarballs/*.tgz \
+              --title "Release ${TAG}" \
+              --notes-file /tmp/release-notes.md
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npmjs
+        run: |
+          NAME=$(node -p 'require("./package.json").name')
+          VERSION=$(node -p 'require("./package.json").version')
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "${NAME}@${VERSION} already published, skipping"
+          else
+            # Staged, not live: a maintainer approves with 2FA (`npm stage approve`).
+            # The trusted publisher on npmjs allows stage publish only. Re-running
+            # after a partial failure errors on an already-staged version (the OIDC
+            # token cannot `npm stage list`); `npm stage reject` it first.
+            npm stage publish --access public --provenance
+          fi
