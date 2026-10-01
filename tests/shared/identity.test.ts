@@ -30,13 +30,14 @@ async function cliDirectory() {
 }
 
 describe('agentIdentity', () => {
-  it('reads DNSID_CONFIG_DIR, and a DNSID_* variable overrides its value', async () => {
+  it('reads DNSID_CONFIG_DIR, lets DNSID_* override it, and ignores DNSID_KEY_STORE', async () => {
     const dir = await cliDirectory();
     const statusUrl = 'https://registry.test/v1/status/alice.example.com';
 
     const { idm, keyProvider } = await agentIdentity({
       DNSID_CONFIG_DIR: dir,
       DNSID_STATUS_URL: statusUrl,
+      DNSID_KEY_STORE: join(dir, 'no-such-keys.json'),
     });
 
     expect(idm.config.identity).toMatchObject({ domain: 'alice.example.com', statusUrl });
