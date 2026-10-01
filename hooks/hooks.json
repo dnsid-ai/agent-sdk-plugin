@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/verify/hook.ts\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/verify/hook.js\" || exit 2",
             "timeout": 30
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/online/hook.ts\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/online/hook.js\"",
             "timeout": 60
           }
         ]

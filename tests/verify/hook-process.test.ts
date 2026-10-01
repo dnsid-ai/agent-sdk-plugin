@@ -1,17 +1,22 @@
 /**
- * The process wrapper, run the way the harness runs it: `node src/verify/hook.ts`
- * with the tool call on stdin. Offline: these cases never reach a verifier.
+ * The process wrapper, run the way the harness runs it: the PreToolUse command
+ * from hooks/hooks.json, through a shell, with the tool call on stdin. Offline:
+ * these cases never reach a verifier.
  */
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
+
+const command = JSON.parse(readFileSync('hooks/hooks.json', 'utf8')).hooks.PreToolUse[0]
+  .hooks[0].command as string;
 
 async function hook(input: unknown, env: NodeJS.ProcessEnv = {}) {
   return new Promise<{ code: number | null; stdout: string }>((resolve, reject) => {
     const child = execFile(
-      'node',
-      ['src/verify/hook.ts'],
-      { env: { ...process.env, ...env } },
+      'sh',
+      ['-c', command],
+      { env: { ...process.env, CLAUDE_PLUGIN_ROOT: process.cwd(), ...env } },
       (error, stdout) => {
         if (error && error.code === undefined) reject(error);
         else resolve({ code: child.exitCode, stdout });
@@ -31,7 +36,7 @@ const call = (tool_name: string, tool_input: unknown) => ({
   tool_use_id: 'tu1',
 });
 
-describe('src/verify/hook.ts', () => {
+describe('the PreToolUse hook command', () => {
   it('prints nothing for a call that is not a peer call', async () => {
     const { code, stdout } = await hook(call('Bash', { command: 'ls' }));
     expect(code).toBe(0);
@@ -54,5 +59,12 @@ describe('src/verify/hook.ts', () => {
         ),
       },
     });
+  });
+
+  it('blocks the call when the hook cannot start at all', async () => {
+    const { code } = await hook(call('WebFetch', { url: 'https://peer.example/' }), {
+      CLAUDE_PLUGIN_ROOT: tmpdir(),
+    });
+    expect(code).toBe(2);
   });
 });

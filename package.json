@@ -6,8 +6,18 @@
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
-    "./verify": "./src/verify/verifier.ts"
+    "./verify": {
+      "types": "./dist/verify/verifier.d.ts",
+      "default": "./dist/verify/verifier.js"
+    }
   },
+  "files": [
+    "dist",
+    "hooks",
+    ".claude-plugin",
+    ".mcp.json",
+    "skills/*/SKILL.md"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -17,10 +27,12 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "npm run build && vitest run",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "alice": "node examples/minimal/alice.ts"
+    "alice": "node examples/minimal/alice.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.1101.0",
