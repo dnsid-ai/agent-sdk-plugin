@@ -31,7 +31,7 @@
   "scripts": {
     "test": "npm run build && vitest run",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "alice": "node examples/minimal/alice.ts",
     "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build",
