@@ -1,8 +1,7 @@
 /**
  * Selects the key that signs for this agent. If DNSID_AWS_KMS_KEY_ID is set,
  * the agent signs with that AWS KMS key. If it is not set, this returns
- * undefined and the caller signs with the key file. `agentIdentity` in
- * `identity.ts` is the one caller.
+ * undefined and the caller signs with the key file.
  */
 import type { KeyProvider } from '@dnsid-ai/sdk';
 import type { AwsKmsFacade, AwsKmsSigningAlgorithm } from '@dnsid-ai/key-aws';

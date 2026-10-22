@@ -11,11 +11,14 @@ import type {
 } from '@anthropic-ai/claude-agent-sdk';
 import {
   issueManagedIdentity,
+  normalizeFQDN,
   type DnsIdJWK,
   type KeyProvider,
   type ManagedIssuanceCoordination,
   type ManagedIssuanceRegistry,
 } from '@dnsid-ai/sdk';
+import { LocalKeyProvider } from '@dnsid-ai/sdk/node';
+import type { AwsKmsFacade } from '@dnsid-ai/key-aws';
 import {
   DEFAULT_REGISTRY_URL,
   RegistryClient,
@@ -24,7 +27,8 @@ import {
 
 import { agentAuthFetch, mintAgentJwt } from './agent-jwt.ts';
 import { issuanceFile } from './issuance-file.ts';
-import { agentIdentity, dnsidFetch } from '../shared/identity.ts';
+import { loadAgentConfig, dnsidFetch } from '../shared/identity.ts';
+import { keyProviderFromEnv } from '../shared/key-provider.ts';
 
 export interface Identity {
   domain: string;
@@ -40,6 +44,35 @@ export interface BringOnlineDeps {
   fetchEntityKey: (ekUrl: string) => Promise<DnsIdJWK>;
   coordination: ManagedIssuanceCoordination;
   issue?: typeof issueManagedIdentity;
+}
+
+export async function issuanceIdentity(
+  env: NodeJS.ProcessEnv = process.env,
+  kms?: AwsKmsFacade,
+): Promise<Identity> {
+  const config = await loadAgentConfig(env);
+  const { domain, governanceId } = config.dnsid?.identity ?? {};
+  if (!domain || !governanceId) {
+    throw new Error('bring-online requires an identity domain and governance ID');
+  }
+
+  const identity = {
+    domain: normalizeFQDN(domain, true),
+    governanceId: normalizeFQDN(governanceId, true),
+  };
+  let keyProvider = await keyProviderFromEnv(env, kms);
+  if (!keyProvider) {
+    const directory = config.keySource!.cliDirectory!;
+    try {
+      keyProvider = await LocalKeyProvider.fromDirectory(directory);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      keyProvider = await LocalKeyProvider.fromDomain(identity.domain, directory);
+    }
+  }
+
+  // ISSUANCE validates this key against the entity-signed event before DNS exists.
+  return { ...identity, keyProvider };
 }
 
 export async function bringOnline(
@@ -126,12 +159,7 @@ export async function runBringOnlineHook({
   const audience =
     env.DNSID_AGENT_AUTH_AUDIENCE ?? env.DNSID_REGISTRY_URL ?? DEFAULT_REGISTRY_URL;
 
-  const { idm, keyProvider } = await agentIdentity(env);
-  const identity: Identity = {
-    domain: idm.config.identity!.domain,
-    governanceId: idm.config.identity!.governanceId,
-    keyProvider,
-  };
+  const identity = await issuanceIdentity(env);
 
   const transport = dnsidFetch(env);
   const registry = new RegistryClient({

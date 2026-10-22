@@ -13,14 +13,6 @@ import { agentIdentity, dnsidFetch } from './shared/identity.ts';
 import { verifyInput, verifyToolDescription, verifyTool } from './verify/verify-tool.ts';
 import { fetchInput, fetchToolDescription, signedFetch } from './sign/fetch-tool.ts';
 
-// A missing or malformed identity fails here, before the server starts, so
-// the model never sees a broken tool.
-const { idm, keyProvider } = await agentIdentity();
-const profile = new HttpSignaturesProfile({
-  domain: idm.config.identity!.domain,
-  keyProvider,
-  identityResolver: idm,
-});
 const fetchImpl = dnsidFetch();
 
 function createServer() {
@@ -37,6 +29,13 @@ function createServer() {
       annotations: { openWorldHint: true },
     },
     async (input) => {
+      // SessionStart must be able to publish the identity before we verify its key.
+      const { idm, keyProvider } = await agentIdentity();
+      const profile = new HttpSignaturesProfile({
+        domain: idm.config.identity!.domain,
+        keyProvider,
+        identityResolver: idm,
+      });
       const result = await signedFetch(profile, input, fetchImpl);
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(result) }],
