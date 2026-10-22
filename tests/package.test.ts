@@ -21,6 +21,29 @@ const started = (file: string) =>
   );
 
 describe('the npm package', () => {
+  it('starts the MCP server before the identity is published', () => {
+    const output = execFileSync(process.execPath, ['dist/mcp.js'], {
+      encoding: 'utf8',
+      timeout: 10_000,
+      env: { ...process.env, DNSID_CONFIG_DIR: '/nonexistent/dnsid-unpublished' },
+      input:
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-11-25',
+            capabilities: {},
+            clientInfo: { name: 'test', version: '1' },
+          },
+        }) + '\n',
+    });
+    expect(JSON.parse(output)).toMatchObject({
+      id: 1,
+      result: { serverInfo: { name: 'dnsid' } },
+    });
+  });
+
   it('contains every compiled file the hooks and MCP server start', () => {
     const files = packed();
     const paths = [...started('hooks/hooks.json'), ...started('.mcp.json')];

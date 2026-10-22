@@ -19,17 +19,24 @@ import { keyProviderFromEnv } from './key-provider.ts';
 // if DNSID_AWS_KMS_KEY_ID is set, else the file next to config.json, never
 // DNSID_KEY_STORE. A KMS key goes to the SDK up front, so it never looks for a
 // key file.
+export async function loadAgentConfig(env: NodeJS.ProcessEnv = process.env) {
+  const [dir, fromEnv] = await Promise.all([
+    loadCliDirectory(env.DNSID_CONFIG_DIR),
+    loadEnvironment(env),
+  ]);
+  return mergeLoadedConfig(dir, { ...fromEnv, keySource: undefined });
+}
+
 export async function agentIdentity(
   env: NodeJS.ProcessEnv = process.env,
   kms?: AwsKmsFacade,
 ) {
-  const [dir, fromEnv, kmsKey] = await Promise.all([
-    loadCliDirectory(env.DNSID_CONFIG_DIR),
-    loadEnvironment(env),
+  const [config, kmsKey] = await Promise.all([
+    loadAgentConfig(env),
     keyProviderFromEnv(env, kms),
   ]);
   const idm = await constructIdentityManager(
-    mergeLoadedConfig(dir, { ...fromEnv, keySource: undefined }),
+    config,
     kmsKey ? { keyProvider: kmsKey } : {},
   );
   return { idm, keyProvider: idm.getKeyProvider() };
