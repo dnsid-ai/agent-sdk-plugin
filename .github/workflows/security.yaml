@@ -14,14 +14,17 @@ concurrency:
 
 jobs:
   typescript:
-    uses: dnsid-ai/github-actions/.github/workflows/security-typescript.yml@main
+    uses: dnsid-ai/github-actions/.github/workflows/security-typescript.yml@9bd2664104473f9cb51cf728ecdb561c59d0c4b4 # v1.3.0
     permissions:
       contents: read # check out the code
       security-events: write # required by the called workflow's jobs
       actions: read # required by the called workflow's jobs
       pull-requests: write # the Summary job posts a sticky typescript: summary comment
     with:
+      # compile.yml already runs these; don't duplicate here.
+      lint: false
+      test: false
       # Code Security not enabled here; findings live in the run summary and artifacts.
-      upload-sarif: false
+      upload-sarif: true
       # Warn-only while the first findings are triaged; flip to true after.
       enforce-security: false
