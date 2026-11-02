@@ -1,6 +1,6 @@
 {
   "name": "@dnsid-ai/agent-sdk-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "DNSid for agents on the Claude Agent SDK, as a plugin: verify peers, sign requests, bring the agent online.",
   "type": "module",
   "exports": {
