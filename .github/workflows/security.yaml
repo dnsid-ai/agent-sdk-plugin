@@ -31,6 +31,10 @@ jobs:
       # Public repo: code scanning is free, so SARIF uploads land in the Security tab.
       # Scan this repo's own GitHub Actions workflows with CodeQL (shared v1.4.0).
       codeql-actions: true
+      # Scan every commit, not just PR open: a follow-up push to an open PR
+      # otherwise skips the scanners and fails Summary 'not scanned', forcing a
+      # reopen. These scans are fast, so scan every push.
+      scan-every-push: true
       upload-sarif: true
       # Warn-only while the first findings are triaged; flip to true after.
       enforce-security: false
